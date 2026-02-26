@@ -1,49 +1,39 @@
-import React from 'react'
+import React, { useState } from 'react'
+import { Icon } from '@iconify/react'
 
-function OptionActivity() {
+const listType = [
+  { id: 'all', name: 'All', icon: 'mdi:view-grid-outline' },
+  { id: '5km', name: '5K', icon: 'mdi:run' },
+  { id: '10km', name: '10K', icon: 'mdi:run-fast' },
+  { id: 'half', name: 'Half Marathon', icon: 'mdi:road-variant' },
+  { id: 'trail', name: 'Trail', icon: 'mdi:nature' },
+]
 
-  const listType = [
-        {
-            id: 1,
-            name: 'All'
-        },
-        { 
-            id: 2,
-            name: 'Road'
-        },
-        {
-            id: 3,
-            name: 'Trail'
-        },
-        {
-            id: 4,
-            name: '5K'
-        }   
-      ,  {
-            id: 5,
-            name: '10K'
-          },
-        {
-            id: 6,
-            name: 'Half Marathon'
-        },
-        {
-            id: 7,  
-            name: 'Marathon'
-        }
-      ];
+function OptionActivity({ onChangeType }) {
+  const [selected, setSelected] = useState('all')
+
+  const handleClick = (type) => {
+    onChangeType(type)
+    setSelected(type)
+  }
 
   return (
-    <div>
-        <div className="list-type mt-5 mb-5">
-          <ul className="flex gap-4">
-            {listType.map(type => (
-              <li key={type.id} className="bg-gray-200 text-gray-600 hover:text-gray-50 font-bold px-4 py-2 rounded-lg shadow-md cursor-pointer hover:bg-blue-500 transition duration-300">
-                {type.name}
-              </li>
-            ))}
-          </ul>
-        </div>
+    <div className="w-full mb-4">
+      <div className="flex flex-wrap gap-2">
+        {listType.map((type) => (
+          <button
+            key={type.id}
+            onClick={() => handleClick(type.id)}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition border ${selected === type.id
+                ? 'bg-blue-500 text-white border-blue-500 shadow-sm'
+                : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-500'
+              }`}
+          >
+            <Icon icon={type.icon} className="text-base" />
+            {type.name}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
