@@ -9,26 +9,30 @@ import MyActivity from './pages/MyActivity';
 import CreateActivity from './pages/CreateActivity';
 import ActivityRequests from './pages/ActivityRequests';
 
+import ProtectedRoute from './components/ProtectedRoute'
+import { AuthProvider } from './context/AuthContext'
+
 function App() {
 
   return (
     <BrowserRouter>
-      <div className="flex flex-col min-h-screen">
-        <div className="px-3 sm:px-6 lg:px-10 pt-3 max-w-screen-2xl mx-auto w-full">
-          <Navbar />
+      <AuthProvider>
+        <div className="flex flex-col min-h-screen">
+          <div className="px-3 sm:px-6 lg:px-10 pt-3 max-w-screen-2xl mx-auto w-full">
+            <Navbar />
+          </div>
+          <div className="px-3 sm:px-6 lg:px-10 mt-4 max-w-screen-2xl mx-auto w-full flex-1">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/myActivity" element={<ProtectedRoute><MyActivity /></ProtectedRoute>} />
+              <Route path="/createActivity" element={<ProtectedRoute><CreateActivity /></ProtectedRoute>} />
+              <Route path="/activity/:id/requests" element={<ProtectedRoute><ActivityRequests /></ProtectedRoute>} />
+            </Routes>
+          </div>
         </div>
-        <div className="px-3 sm:px-6 lg:px-10 mt-4 max-w-screen-2xl mx-auto w-full flex-1">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/myActivity" element={<MyActivity />} />
-            <Route path="/createActivity" element={<CreateActivity />} />
-            <Route path="/activity/:id/requests" element={<ActivityRequests />} />
-            {/* <Route path="/register" element={<Register />} /> */}
-          </Routes>
-        </div>
-      </div>
+      </AuthProvider>
     </BrowserRouter>
   )
 }
