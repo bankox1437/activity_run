@@ -11,7 +11,18 @@ const activityRoutes = require('./routes/activity')
 const app = express()
 
 app.use(helmet())
-app.use(cors({ origin: true, credentials: true }))
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.NODE_ENV !== 'production' ? 'http://localhost:5173' : null,
+].filter(Boolean)
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true)
+    callback(new Error(`CORS: origin ${origin} not allowed`))
+  },
+  credentials: true,
+}))
 app.use(express.json())
 app.use(cookieParser())
 app.use('/uploads', express.static('uploads'))

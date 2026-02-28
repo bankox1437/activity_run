@@ -28,7 +28,6 @@ const upload = multer({
     },
 });
 
-// ── CREATE activity ──────────────────────────────────────────────────────────
 router.post('/create', auth, upload.single('image'), async (req, res) => {
     const { title, location, datetime, raceType, description } = req.body;
     const user_id = req.user.id;
@@ -47,9 +46,8 @@ router.post('/create', auth, upload.single('image'), async (req, res) => {
     }
 });
 
-// ── JOIN activity ────────────────────────────────────────────────────────────
 router.post('/join/:activity_id', auth, async (req, res) => {
-    const { activity_id } = req.params;   // references tb_activity.id
+    const { activity_id } = req.params; 
     const { comment } = req.body;
     const user_id = req.user.id;
 
@@ -74,7 +72,6 @@ router.post('/join/:activity_id', auth, async (req, res) => {
     }
 });
 
-// ── GET all activities ───────────────────────────────────────────────────────
 router.get('/all', async (req, res) => {
     try {
         const result = await pool.query(
@@ -90,7 +87,6 @@ router.get('/all', async (req, res) => {
     }
 });
 
-// ── GET activities created by logged-in user ─────────────────────────────────
 router.get('/my-created', auth, async (req, res) => {
     const user_id = req.user.id;
     try {
@@ -111,7 +107,6 @@ router.get('/my-created', auth, async (req, res) => {
     }
 });
 
-// ── GET activities joined by logged-in user ──────────────────────────────────
 router.get('/my-joined', auth, async (req, res) => {
     const user_id = req.user.id;
     try {
@@ -135,7 +130,6 @@ router.get('/my-joined', auth, async (req, res) => {
     }
 });
 
-// ── GET race types ───────────────────────────────────────────────────────────
 router.get('/getRaceType', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM tb_race_type');
@@ -146,13 +140,12 @@ router.get('/getRaceType', async (req, res) => {
     }
 });
 
-// ── GET join requests for an activity (owner only) ───────────────────────────
 router.get('/:activity_id/requests', auth, async (req, res) => {
     const { activity_id } = req.params;
     const user_id = req.user.id;
 
     try {
-        // ตรวจสอบว่าเป็นเจ้าของ activity
+       
         const owner = await pool.query(
             'SELECT id FROM tb_activity WHERE id = $1 AND user_id = $2',
             [activity_id, user_id]
@@ -177,7 +170,6 @@ router.get('/:activity_id/requests', auth, async (req, res) => {
     }
 });
 
-// ── PATCH accept/reject a join request ───────────────────────────────────────
 router.patch('/request/:join_id', auth, async (req, res) => {
     const { join_id } = req.params;
     const { status } = req.body; // 'accepted' | 'rejected' | 'pending'
