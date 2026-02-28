@@ -43,8 +43,8 @@ router.post('/create', auth, upload.single('image'), async (req, res) => {
         );
         res.status(201).json({ activity: result.rows[0] });
     } catch (err) {
-        console.error('Create error:', err.message);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Create error:', err);
+        res.status(500).json({ message: 'Server error', detail: err.message, stack: err.stack });
     }
 });
 

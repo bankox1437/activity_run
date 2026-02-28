@@ -4,7 +4,7 @@ import { Icon } from '@iconify/react'
 import axios from 'axios'
 
 import Swal from 'sweetalert2';
-import 'sweetalert2/dist/sweetalert2.min.css'; 
+import 'sweetalert2/dist/sweetalert2.min.css';
 
 
 function CreateActivity() {
@@ -47,10 +47,10 @@ function CreateActivity() {
         e.preventDefault()
 
         if (!form.date || !form.time || !form.title || !raceType) {
-             Swal.fire({
-                title: 'Success',
-                text: 'Please fill the Data',
-                icon: 'success',
+            Swal.fire({
+                title: 'กรุณากรอกข้อมูลให้ครบ',
+                text: 'Title, Date, Time และ Race Type จำเป็นต้องกรอก',
+                icon: 'warning',
             })
             return
         }
@@ -157,7 +157,7 @@ function CreateActivity() {
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-3 items-start">
-                       
+
                         <div className="flex-1 min-w-0">
                             <label className="block text-sm font-bold text-gray-800 mb-1.5">
                                 Location
@@ -227,16 +227,11 @@ function CreateActivity() {
                             className="w-full px-4 py-2.5 rounded-full border border-gray-200 bg-gray-50 text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition appearance-none cursor-pointer"
                         >
                             <option value="" disabled>Select race type...</option>
-                            {raceTypes.map((rt, i) => {
-                                const keys = Object.keys(rt)
-                                const val = rt[keys[0]]
-                                const label = rt[keys[1]] ?? rt[keys[0]]
-                                return (
-                                    <option key={i} value={val}>
-                                        {label}
-                                    </option>
-                                )
-                            })}
+                            {raceTypes.map((rt) => (
+                                <option key={rt.race_type_id} value={rt.race_type_id}>
+                                    {rt.race_type_name}
+                                </option>
+                            ))}
                         </select>
                     </div>
 

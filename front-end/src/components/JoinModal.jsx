@@ -34,14 +34,13 @@ function JoinModal({ activity, onClose, onSuccess }) {
     }
 
     return (
-        // Backdrop
+       
         <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-fadeIn">
 
-                {/* Header */}
                 <div className="flex items-start justify-between p-5 border-b border-gray-100">
                     <div>
                         <h2 className="text-lg font-extrabold text-gray-900">Join Activity</h2>
@@ -55,8 +54,6 @@ function JoinModal({ activity, onClose, onSuccess }) {
                     </button>
                 </div>
 
-            
-                {/* Form */}
                 <form onSubmit={handleSubmit} className="p-5 space-y-4">
                     <div>
                         <label className="block text-sm font-bold text-gray-800 mb-1.5">
