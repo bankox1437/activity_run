@@ -30,7 +30,20 @@ const router = express.Router();
 
 const upload = require('../cloudinary')
 
-router.post('/create', auth, upload.single('image'), async (req, res) => {
+router.post('/create', auth, (req, res, next) => {
+    upload.single('image')(req, res, (err) => {
+        if (err) {
+            console.error('Multer/Cloudinary Error:', err);
+            return res.status(500).json({
+                message: 'Upload failure',
+                detail: err.message,
+                stack: err.stack,
+                code: err.code
+            });
+        }
+        next();
+    });
+}, async (req, res) => {
     const { title, location, datetime, raceType, description } = req.body;
     const user_id = req.user.id;
     const image = req.file ? req.file.path : null;
