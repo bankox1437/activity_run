@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import axios from 'axios'
 
+import Swal from 'sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css'; 
+
+
 function CreateActivity() {
 
     const apiURL = import.meta.env.VITE_API_URL;
