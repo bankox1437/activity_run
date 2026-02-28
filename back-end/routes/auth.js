@@ -86,7 +86,7 @@ router.post('/logout', (req, res) => {
      res.clearCookie('refreshToken', {
           httpOnly: true,
           sameSite: 'strict',
-          secure: false // true when use https
+          secure: process.env.NODE_ENV === 'production',
      })
 
      res.json({ message: 'Logged out' })
