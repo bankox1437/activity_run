@@ -33,7 +33,7 @@ const upload = require('../cloudinary')
 router.post('/create', auth, upload.single('image'), async (req, res) => {
     const { title, location, datetime, raceType, description } = req.body;
     const user_id = req.user.id;
-    const image = req.file ? req.file.filename : null;
+    const image = req.file ? req.file.path : null;
 
     try {
         const result = await pool.query(

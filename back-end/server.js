@@ -32,6 +32,8 @@ app.use('/api/auth/login', rateLimit({
   max: process.env.NODE_ENV === 'production' ? 10 : 100
 }))
 
+app.get('/', (req, res) => res.json({ status: 'ok', message: 'Activity Run API is running' }))
+
 app.use('/api/auth', authRoutes)
 app.use('/api/activity', activityRoutes)
 
