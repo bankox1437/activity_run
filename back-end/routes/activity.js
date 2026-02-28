@@ -8,25 +8,27 @@ require('dotenv').config();
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, 'uploads/'),
-    filename: (req, file, cb) => {
-        const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-        cb(null, unique + path.extname(file.originalname));
-    },
-});
+// const storage = multer.diskStorage({
+//     destination: (req, file, cb) => cb(null, 'uploads/'),
+//     filename: (req, file, cb) => {
+//         const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+//         cb(null, unique + path.extname(file.originalname));
+//     },
+// });
 
-const upload = multer({
-    storage,
-    limits: { fileSize: 5 * 1024 * 1024 },
-    fileFilter: (req, file, cb) => {
-        const allowed = /jpeg|jpg|png|webp/;
-        const ext = allowed.test(path.extname(file.originalname).toLowerCase());
-        const mime = allowed.test(file.mimetype);
-        if (ext && mime) return cb(null, true);
-        cb(new Error('Only images are allowed'));
-    },
-});
+// const upload = multer({
+//     storage,
+//     limits: { fileSize: 5 * 1024 * 1024 },
+//     fileFilter: (req, file, cb) => {
+//         const allowed = /jpeg|jpg|png|webp/;
+//         const ext = allowed.test(path.extname(file.originalname).toLowerCase());
+//         const mime = allowed.test(file.mimetype);
+//         if (ext && mime) return cb(null, true);
+//         cb(new Error('Only images are allowed'));
+//     },
+// });
+
+const upload = require('../cloudinary')
 
 router.post('/create', auth, upload.single('image'), async (req, res) => {
     const { title, location, datetime, raceType, description } = req.body;
@@ -47,7 +49,7 @@ router.post('/create', auth, upload.single('image'), async (req, res) => {
 });
 
 router.post('/join/:activity_id', auth, async (req, res) => {
-    const { activity_id } = req.params; 
+    const { activity_id } = req.params;
     const { comment } = req.body;
     const user_id = req.user.id;
 
@@ -145,7 +147,7 @@ router.get('/:activity_id/requests', auth, async (req, res) => {
     const user_id = req.user.id;
 
     try {
-       
+
         const owner = await pool.query(
             'SELECT id FROM tb_activity WHERE id = $1 AND user_id = $2',
             [activity_id, user_id]
