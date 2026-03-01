@@ -6,10 +6,9 @@ require('dotenv').config();
 
 const router = express.Router();
 
-const cloudinary = require('../cloudinary');
 
 router.post('/create', auth, async (req, res) => {
-    const { title, location, datetime, raceType, description, imageUrl } = req.body;
+    const { title, location, datetime, raceType, description } = req.body;
     const user_id = req.user.id;
 
     try {
@@ -22,9 +21,9 @@ router.post('/create', auth, async (req, res) => {
         }
 
         const result = await pool.query(
-            `INSERT INTO tb_activity (title, location, datetime, type_race, description, image, user_id)
-             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-            [title, location, datetime, raceType, description, imageUrl || null, user_id]
+            `INSERT INTO tb_activity (title, location, datetime, type_race, description, user_id)
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+            [title, location, datetime, raceType, description, user_id]
         );
         res.status(201).json({ activity: result.rows[0] });
     } catch (err) {
@@ -40,7 +39,7 @@ router.post('/join/:activity_id', auth, async (req, res) => {
 
     try {
         const existing = await pool.query(
-            'SELECT id FROM tb_activity_join WHERE activity_id = $1 AND user_id = $2',
+            'SELECT id FROM tb_activity_join WHERE activity_id = $1 AND user_id = $2 AND status NOT IN(2)',
             [activity_id, user_id]
         );
         if (existing.rows.length > 0) {

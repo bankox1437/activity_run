@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import axios from 'axios'
@@ -14,9 +14,6 @@ function CreateActivity() {
 
     const [raceType, setRaceType] = useState('')
     const [raceTypes, setRaceTypes] = useState([]) // Dropdown
-    const [imageFile, setImageFile] = useState(null)
-    const [imagePreview, setImagePreview] = useState(null)
-    const fileInputRef = useRef(null)
 
     const [form, setForm] = useState({
         title: '',
@@ -36,13 +33,6 @@ function CreateActivity() {
         setForm({ ...form, [e.target.name]: e.target.value })
     }
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0]
-        if (!file) return
-        setImageFile(file)
-        setImagePreview(URL.createObjectURL(file))
-    }
-
     const handleSubmit = async (e) => {
         e.preventDefault()
 
@@ -57,26 +47,6 @@ function CreateActivity() {
 
         const datetime = `${form.date}T${form.time}`
 
-        // Upload image directly to Cloudinary from frontend
-        let imageUrl = null
-        if (imageFile) {
-            const cloudData = new FormData()
-            cloudData.append('file', imageFile)
-            cloudData.append('upload_preset', 'activity_run')
-            cloudData.append('folder', 'activity_run')
-
-            const cloudRes = await fetch(
-                `https://api.cloudinary.com/v1_1/dizuhvclu/image/upload`,
-                { method: 'POST', body: cloudData }
-            )
-            if (!cloudRes.ok) {
-                Swal.fire({ title: 'Image upload failed', icon: 'error' })
-                return
-            }
-            const cloudJson = await cloudRes.json()
-            imageUrl = cloudJson.secure_url
-        }
-
         try {
             const res = await axios.post(
                 `${apiURL}activity/create`,
@@ -86,7 +56,6 @@ function CreateActivity() {
                     description: form.description,
                     raceType,
                     datetime,
-                    imageUrl,
                 },
                 {
                     headers: {
@@ -121,61 +90,14 @@ function CreateActivity() {
 
                     <div>
                         <label className="block text-sm font-bold text-gray-800 mb-1.5">
-                            Activity Image <span className="font-normal text-gray-500">(Optional)</span>
-                        </label>
-
-                        <div
-                            onClick={() => fileInputRef.current.click()}
-                            className="relative w-full h-44 rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition overflow-hidden"
-                        >
-                            {imagePreview ? (
-                                <img
-                                    src={imagePreview}
-                                    alt="Preview"
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <div className="flex flex-col items-center gap-2 text-gray-400">
-                                    <Icon icon="mdi:image-plus-outline" className="text-4xl" />
-                                    <span className="text-sm">Click to upload activity image</span>
-                                </div>
-                            )}
-
-                            {imagePreview && (
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        setImageFile(null)
-                                        setImagePreview(null)
-                                        fileInputRef.current.value = ''
-                                    }}
-                                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition"
-                                >
-                                    <Icon icon="mdi:close" className="text-sm" />
-                                </button>
-                            )}
-                        </div>
-
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp"
-                            onChange={handleImageChange}
-                            className="hidden"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-bold text-gray-800 mb-1.5">
-                            Activity Title
+                            Activity Title <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="text"
                             name="title"
                             value={form.title}
                             onChange={handleChange}
-                            placeholder="Enter activity name e.g. Sunday Morning Run..."
+                            placeholder="Please activity name"
                             className="w-full px-4 py-3 rounded-full border border-gray-200 bg-gray-50 text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
                         />
                     </div>
@@ -184,7 +106,7 @@ function CreateActivity() {
 
                         <div className="flex-1 min-w-0">
                             <label className="block text-sm font-bold text-gray-800 mb-1.5">
-                                Location
+                                Location <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <Icon
@@ -196,7 +118,7 @@ function CreateActivity() {
                                     name="location"
                                     value={form.location}
                                     onChange={handleChange}
-                                    placeholder="Search or enter meeting point..."
+                                    placeholder="Please fill the location"
                                     className="w-full pl-9 pr-4 py-2.5 rounded-full border border-gray-200 bg-gray-50 text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
                                 />
                             </div>
@@ -204,7 +126,7 @@ function CreateActivity() {
 
                         <div className="sm:w-40 w-full">
                             <label className="block text-sm font-bold text-gray-800 mb-1.5">
-                                Date
+                                Date <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <Icon
@@ -223,7 +145,7 @@ function CreateActivity() {
 
                         <div className="sm:w-36 w-full">
                             <label className="block text-sm font-bold text-gray-800 mb-1.5">
-                                Time
+                                Time <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <Icon
@@ -243,7 +165,7 @@ function CreateActivity() {
 
                     <div>
                         <label className="block text-sm font-bold text-gray-800 mb-1.5">
-                            Race Type
+                            Race Type <span className="text-red-500">*</span>
                         </label>
                         <select
                             value={raceType}
@@ -261,18 +183,14 @@ function CreateActivity() {
 
                     <div>
                         <label className="block text-sm font-bold text-gray-800 mb-0.5">
-                            Description{' '}
-                            <span className="font-normal text-gray-500">(Optional)</span>
+                            Description <span className="text-red-500">*</span>
                         </label>
-                        <p className="text-xs text-gray-400 mb-2">
-                            Tell runners about the route or what to prepare...
-                        </p>
                         <textarea
                             name="description"
                             value={form.description}
                             onChange={handleChange}
                             rows={3}
-                            placeholder="e.g. We will meet at the park entrance, bring water..."
+                            placeholder="Please fill the description"
                             className="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition resize-none"
                         />
                     </div>

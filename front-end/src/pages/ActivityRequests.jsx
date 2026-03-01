@@ -213,7 +213,7 @@ function ActivityRequests() {
                                         {cfg.label}
                                     </span>
                                 </div>
-                                <div className="flex items-center">
+                                <div className="flex items-center my-1">
                                     <p className="text-gray-500 text-xs">{formatDate(req.datetime)} {formatTime(req.datetime)}</p>
                                 </div>
                                 {req.comment && (

@@ -45,6 +45,22 @@ function CardActivity({ raceType }) {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [joinTarget, setJoinTarget] = useState(null)
+    const [descriptionTarget, setDescriptionTarget] = useState(null)
+    const [joinedMap, setJoinedMap] = useState({}) // keep status 0,1,2
+
+    const fetchJoined = () => {
+        const token = localStorage.getItem('token')
+        if (!token) return
+        axios.get(`${apiURL}activity/my-joined`, {
+            headers: { Authorization: `Bearer ${token}` }
+        }).then(res => {
+            const map = {};
+            (res.data.data || []).forEach(j => {
+                map[j.activity_id] = j.status
+            })
+            setJoinedMap(map)
+        }).catch(() => { })
+    }
 
     useEffect(() => {
         axios.get(`${apiURL}activity/all`)
@@ -57,6 +73,7 @@ function CardActivity({ raceType }) {
                 setError('Failed to load activities')
                 setLoading(false)
             })
+        fetchJoined()
     }, [])
 
     if (loading) return (
@@ -92,6 +109,7 @@ function CardActivity({ raceType }) {
                     onClose={() => setJoinTarget(null)}
                     onSuccess={() => {
                         setJoinTarget(null)
+                        fetchJoined()
                         Swal.fire({
                             title: 'Success!',
                             text: 'Joined successfully!',
@@ -102,33 +120,28 @@ function CardActivity({ raceType }) {
                 />
             )}
 
+            {descriptionTarget && (
+                <DescriptionModal
+                    activity={descriptionTarget}
+                    onClose={() => setDescriptionTarget(null)}
+                />
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filtered.map((activity) => {
-                    const imgSrc = activity.image
-                        ? `${apiURL.replace('/api/', '')}/uploads/${activity.image}`
-                        : defaultCardImg
-
-                    const raceLabel = activity.type_race_name || activity.type_race || '-'
-
                     return (
                         <div
                             key={activity.id}
                             className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition group"
                         >
                             <div className="relative overflow-hidden bg-gray-100 h-40">
-                                {imgSrc ? (
-                                    <img
-                                        src={imgSrc}
-                                        alt={activity.title}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                                    />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                        <Icon icon="mdi:image-off-outline" className="text-4xl" />
-                                    </div>
-                                )}
+                                <img
+                                    src={defaultCardImg}
+                                    alt={activity.title}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                                />
                                 <span className={`absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full ${typeBadge[activity.type_race_name] ?? 'bg-gray-100 text-gray-500'}`}>
-                                    {typeBadgeName[raceLabel]}
+                                    {typeBadgeName[activity.type_race_name || activity.type_race] || activity.type_race_name || '-'}
                                 </span>
                             </div>
 
@@ -151,24 +164,73 @@ function CardActivity({ raceType }) {
                                         {formatTime(activity.datetime)}
                                     </span>
                                 </div>
-
-                                {user && (
-                                    (user.id !== activity.user_id) ?
-                                        <button onClick={() => setJoinTarget(activity)}
-                                            className="mt-1 w-full py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded-full cursor-pointer transition"
-                                        >Join Run</button>
-                                        : (
-                                            <span className="mt-1 w-full py-2 bg-gray-300 text-white text-xs font-semibold rounded-full text-center">
+                                <div className="flex flex-rows">
+                                    <button onClick={() => setDescriptionTarget(activity)}
+                                        className="mt-1 mx-1 w-full py-2 bg-gray-400 hover:bg-gray-500 text-white text-xs font-semibold rounded-full cursor-pointer transition">
+                                        View
+                                    </button>
+                                    {user && (
+                                        user.id === activity.user_id ? (
+                                            <span className="mt-1 w-full py-2 bg-gray-300 text-white text-xs font-semibold rounded-full text-center block">
                                                 Your Activity
                                             </span>
+                                        ) : joinedMap[activity.id] === 0 ? (
+                                            <span className="mt-1 w-full py-2 bg-yellow-300 text-white text-xs font-semibold rounded-full text-center flex items-center justify-center gap-1">
+                                                <Icon icon="mdi:clock-outline" className="text-sm" />
+                                                Processing...
+                                            </span>
+                                        ) : joinedMap[activity.id] === 1 ? (
+                                            <span className="mt-1 w-full py-2 bg-green-500 text-white text-xs font-semibold rounded-full text-center flex items-center justify-center gap-1">
+                                                <Icon icon="mdi:check-circle-outline" className="text-sm" />
+                                                Accepted
+                                            </span>
+                                        ) : (
+                                            <button onClick={() => setJoinTarget(activity)}
+                                                className="mt-1 w-full py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded-full cursor-pointer transition">
+                                                Join Run
+                                            </button>
                                         )
-                                )}
+
+                                    )}
+                                </div>
+
                             </div>
                         </div>
                     )
                 })}
             </div>
         </>
+    )
+}
+
+function DescriptionModal({ activity, onClose }) {
+    const handleBackdrop = (e) => {
+        if (e.target === e.currentTarget) onClose()
+    }
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+            onClick={handleBackdrop}
+        >
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden">
+                <div className="flex items-center justify-between px-5 pt-5 pb-3">
+                    <h3 className="font-bold text-gray-900 text-base">Description</h3>
+                    <button
+                        onClick={onClose}
+                        className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition"
+                    >
+                        <Icon icon="mdi:close" className="text-base" />
+                    </button>
+                </div>
+                <div className="px-5 pb-6">
+                    {activity.description ? (
+                        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{activity.description}</p>
+                    ) : (
+                        <p className="text-sm text-gray-400 italic">No description provided.</p>
+                    )}
+                </div>
+            </div>
+        </div>
     )
 }
 

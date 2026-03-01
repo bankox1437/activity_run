@@ -2,6 +2,9 @@ import React, { useState } from 'react'
 import axios from 'axios'
 import { Icon } from '@iconify/react'
 
+import Swal from 'sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
+
 const apiURL = import.meta.env.VITE_API_URL
 
 function JoinModal({ activity, onClose, onSuccess }) {
@@ -13,6 +16,16 @@ function JoinModal({ activity, onClose, onSuccess }) {
         e.preventDefault()
         setLoading(true)
         setError(null)
+
+        if(comment == ''){
+            Swal.fire({
+                title: 'Please fill the comment',
+                // text: 'Title, Date, Time and Race Type are required',
+                icon: 'warning',
+            })
+            setLoading(false);
+            return
+        }
 
         try {
             await axios.post(
@@ -57,13 +70,13 @@ function JoinModal({ activity, onClose, onSuccess }) {
                 <form onSubmit={handleSubmit} className="p-5 space-y-4">
                     <div>
                         <label className="block text-sm font-bold text-gray-800 mb-1.5">
-                            Comment
+                            Comment <span className="text-red-500">*</span>
                         </label>
                         <textarea
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                             rows={3}
-                            placeholder="e.g. Looking forward to running with everyone!"
+                            placeholder="Please fill the comment"
                             className="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition resize-none"
                         />
                     </div>
