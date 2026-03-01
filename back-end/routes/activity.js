@@ -49,6 +49,14 @@ router.post('/create', auth, (req, res, next) => {
     const image = req.file ? req.file.path : null;
 
     try {
+        const duplicate = await pool.query(
+            'SELECT id FROM tb_activity WHERE user_id = $1 AND datetime = $2',
+            [user_id, datetime]
+        );
+        if (duplicate.rows.length > 0) {
+            return res.status(409).json({ message: 'You already have an activity at this date and time' });
+        }
+
         const result = await pool.query(
             `INSERT INTO tb_activity (title, location, datetime, type_race, description, image, user_id)
              VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
@@ -171,9 +179,10 @@ router.get('/:activity_id/requests', auth, async (req, res) => {
 
         const result = await pool.query(
             `SELECT j.id AS join_id, j.comment, j.status, j.user_id,
-            u.first_name, u.last_name
+            u.first_name, u.last_name, a.datetime
              FROM tb_activity_join j
-             JOIN tb_users u ON u.user_id = j.user_id
+             LEFT JOIN tb_activity a ON a.id = j.activity_id
+             LEFT JOIN tb_users u ON u.user_id = j.user_id
              WHERE j.activity_id = $1
              ORDER BY j.id ASC`,
             [activity_id]

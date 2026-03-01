@@ -3,8 +3,8 @@ import { Icon } from '@iconify/react'
 
 const listType = [
   { id: 'all', name: 'All', icon: 'mdi:view-grid-outline' },
-  { id: '5km', name: '5K', icon: 'mdi:run' },
-  { id: '10km', name: '10K', icon: 'mdi:run-fast' },
+  { id: '5k', name: '5K', icon: 'mdi:run' },
+  { id: '10k', name: '10K', icon: 'mdi:run-fast' },
   { id: 'half', name: 'Half Marathon', icon: 'mdi:road-variant' },
   { id: 'trail', name: 'Trail', icon: 'mdi:nature' },
 ]

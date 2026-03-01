@@ -11,6 +11,14 @@ const statusConfig = {
     rejected: { label: 'Rejected', cls: 'bg-red-100 text-red-500', icon: 'mdi:close-circle-outline' },
 }
 
+const typeBadgeName = {
+    '5k': '5K',
+    '10k': '10K',
+    'half': 'Half Marathon',
+    'full': 'Full Marathon',
+    'trail': 'Trail',
+}
+
 function intToStatus(val) {
     if (val === 1) return 'accepted'
     if (val === 2) return 'rejected'
@@ -19,6 +27,18 @@ function intToStatus(val) {
 
 function getInitials(first, last) {
     return `${(first?.[0] ?? '').toUpperCase()}${(last?.[0] ?? '').toUpperCase()}`
+}
+
+function formatDate(datetime) {
+  if (!datetime) return '-'
+  return new Date(datetime).toLocaleDateString('en-GB', {
+    day: 'numeric', month: 'short', year: 'numeric',
+  })
+}
+
+function formatTime(datetime) {
+  if (!datetime) return '-'
+  return new Date(datetime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
 }
 
 function ActivityRequests() {
@@ -64,6 +84,11 @@ function ActivityRequests() {
 
         fetchAll()
     }, [activityId])
+
+    useEffect(()=>{
+        console.log(requests);
+        
+    },[requests])
 
     // accept / reject
     const updateStatus = async (join_id, action) => {
@@ -127,23 +152,36 @@ function ActivityRequests() {
                         <span className="flex items-center gap-1"><Icon icon="mdi:map-marker-outline" />{activity.location || '-'}</span>
                         <span className="flex items-center gap-1">
                             <Icon icon="mdi:calendar-outline" />
-                            {activity.datetime ? new Date(activity.datetime).toLocaleDateString('en-EN', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
+                            {activity.datetime ? new Date(activity.datetime).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
                         </span>
                         <span className="flex items-center gap-1">
                             <Icon icon="mdi:run-fast" />
-                            {activity.type_race_name || '-'}
+                            {typeBadgeName[activity.type_race_name] || '-'}
                         </span>
                     </div>
                 </div>
             )}
-            <div className="flex gap-1 bg-gray-100 rounded-full p-1 mb-5 w-fit flex-wrap">
-                {['all', 'pending', 'accepted', 'rejected'].map(f => (
+            <div className="flex flex-wrap gap-2 mb-5">
+                {[
+                    { key: 'all', label: 'All', icon: 'mdi:view-grid-outline' },
+                    { key: 'pending', label: 'Pending', icon: 'mdi:clock-outline' },
+                    { key: 'accepted', label: 'Accepted', icon: 'mdi:check-circle-outline' },
+                    { key: 'rejected', label: 'Rejected', icon: 'mdi:close-circle-outline' },
+                ].map(f => (
                     <button
-                        key={f}
-                        onClick={() => setFilter(f)}
-                        className={`flex items-center gap-1 px-4 py-1.5 rounded-full text-xs font-medium capitalize transition ${filter === f ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        key={f.key}
+                        onClick={() => setFilter(f.key)}
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition border ${filter === f.key
+                                ? 'bg-blue-500 text-white border-blue-500 shadow-sm'
+                                : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-500'
+                            }`}
                     >
-                        {f === 'all' ? `All (${counts.all})` : `${statusConfig[f].label} (${counts[f]})`}
+                        <Icon icon={f.icon} className="text-base" />
+                        {f.label}
+                        <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${filter === f.key ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-600'
+                            }`}>
+                            {counts[f.key]}
+                        </span>
                     </button>
                 ))}
             </div>
@@ -169,14 +207,18 @@ function ActivityRequests() {
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
                                     <span className="font-bold text-gray-900 text-sm">{req.first_name} {req.last_name}</span>
+    
                                     <span className={`flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full ${cfg.cls}`}>
                                         <Icon icon={cfg.icon} className="text-sm" />
                                         {cfg.label}
                                     </span>
                                 </div>
+                                <div className="flex items-center">
+                                    <p className="text-gray-500 text-xs">{formatDate(req.datetime)} {formatTime(req.datetime)}</p>
+                                </div>
                                 {req.comment && (
-                                    <p className="text-xs text-gray-500 mt-1.5 bg-gray-50 rounded-xl px-3 py-2 italic">
-                                        "{req.comment}"
+                                    <p className="text-xs text-gray-500 mt-1.5 bg-gray-50 rounded-xl px-3 py-2">
+                                        {req.comment}
                                     </p>
                                 )}
                             </div>

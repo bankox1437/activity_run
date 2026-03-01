@@ -22,18 +22,18 @@ const statusConfig = {
 
 function formatDate(datetime) {
   if (!datetime) return '-'
-  return new Date(datetime).toLocaleDateString('en-EN', {
+  return new Date(datetime).toLocaleDateString('en-GB', {
     day: 'numeric', month: 'short', year: 'numeric',
   })
 }
 
 function formatTime(datetime) {
   if (!datetime) return '-'
-  return new Date(datetime).toLocaleTimeString('en-EN', { hour: '2-digit', minute: '2-digit' })
+  return new Date(datetime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
 }
 
 function CreatedCard({ activity }) {
-  
+
   const navigate = useNavigate()
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col gap-3 hover:shadow-md transition">
@@ -78,7 +78,7 @@ function CreatedCard({ activity }) {
 }
 
 function JoinedCard({ activity }) {
-  
+
   const statusKey = Number(activity.status) // 0, 1, 2
   const cfg = statusConfig[statusKey] ?? statusConfig[0]
   const organizer = `${activity.organizer_first ?? ''} ${activity.organizer_last ?? ''}`.trim() || '-'
@@ -161,7 +161,7 @@ function MyActivity() {
         </button>
       </div>
 
-      <div className="flex gap-1 bg-gray-100 rounded-full p-1 mb-6 w-fit">
+      <div className="flex flex-wrap gap-2 mb-6">
         {[
           { key: 'created', label: 'Created', icon: 'mdi:pencil-outline' },
           { key: 'joined', label: 'Joined', icon: 'mdi:account-plus-outline' },
@@ -169,14 +169,15 @@ function MyActivity() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-medium transition ${activeTab === tab.key
-              ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition border ${activeTab === tab.key
+                ? 'bg-blue-500 text-white border-blue-500 shadow-sm'
+                : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-500'
               }`}
           >
-            <Icon icon={tab.icon} />
+            <Icon icon={tab.icon} className="text-base" />
             {tab.label}
-            <span className="ml-1 text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full">
+            <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${activeTab === tab.key ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-600'
+              }`}>
               {tab.key === 'created' ? created.length : joined.length}
             </span>
           </button>

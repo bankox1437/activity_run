@@ -13,7 +13,7 @@ function CreateActivity() {
     const navigate = useNavigate()
 
     const [raceType, setRaceType] = useState('')
-    const [raceTypes, setRaceTypes] = useState([])
+    const [raceTypes, setRaceTypes] = useState([]) // Dropdown
     const [imageFile, setImageFile] = useState(null)
     const [imagePreview, setImagePreview] = useState(null)
     const fileInputRef = useRef(null)
@@ -48,8 +48,8 @@ function CreateActivity() {
 
         if (!form.date || !form.time || !form.title || !raceType) {
             Swal.fire({
-                title: 'กรุณากรอกข้อมูลให้ครบ',
-                text: 'Title, Date, Time และ Race Type จำเป็นต้องกรอก',
+                title: 'Please fill in all required fields',
+                text: 'Title, Date, Time and Race Type are required',
                 icon: 'warning',
             })
             return
@@ -81,7 +81,12 @@ function CreateActivity() {
             navigate('/')
         } catch (err) {
             console.error(err)
-            alert(err.response?.data?.message || 'Create activity failed')
+            Swal.fire({
+                title: 'Failed to create activity',
+                text: err.response?.data?.message || 'Create activity failed',
+                icon: 'error',
+                confirmButtonColor: '#3b82f6',
+            })
         }
     }
 

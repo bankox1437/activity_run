@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react'
 import axios from 'axios'
+import Swal from 'sweetalert2'
 import { Icon } from '@iconify/react'
 import { AuthContext } from '../context/AuthContext'
 import JoinModal from './JoinModal'
@@ -15,14 +16,35 @@ const typeBadge = {
     'trail': 'bg-orange-100 text-orange-600',
 }
 
+const typeBadgeName = {
+    '5k': '5K',
+    '10k': '10K',
+    'half': 'Half Marathon',
+    'full': 'Full Marathon',
+    'trail': 'Trail',
+}
+
+function formatDate(datetime) {
+    if (!datetime) return '-'
+    return new Date(datetime).toLocaleDateString('en-GB', {
+        day: 'numeric', month: 'short', year: 'numeric',
+    })
+}
+
+function formatTime(datetime) {
+    if (!datetime) return '-'
+    return new Date(datetime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+}
+
+
 function CardActivity({ raceType }) {
+
     const { user } = useContext(AuthContext)
 
     const [activities, setActivities] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [joinTarget, setJoinTarget] = useState(null)
-    const [successMsg, setSuccessMsg] = useState('')
 
     useEffect(() => {
         axios.get(`${apiURL}activity/all`)
@@ -52,7 +74,7 @@ function CardActivity({ raceType }) {
 
     const filtered = raceType === 'all'
         ? activities
-        : activities.filter((a) => a.type_race === raceType)
+        : activities.filter((a) => a.type_race_name === raceType)
 
     if (filtered.length === 0) return (
         <div className="flex flex-col items-center py-16 text-gray-300">
@@ -63,17 +85,19 @@ function CardActivity({ raceType }) {
 
     return (
         <>
-           
+
             {joinTarget && (
                 <JoinModal
                     activity={joinTarget}
                     onClose={() => setJoinTarget(null)}
                     onSuccess={() => {
-                            Swal.fire({
-                                title: 'Success',
-                                text: 'Joined successfully!',
-                                icon: 'success',
-                            })
+                        setJoinTarget(null)
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Joined successfully!',
+                            icon: 'success',
+                            confirmButtonColor: '#3b82f6',
+                        })
                     }}
                 />
             )}
@@ -83,12 +107,6 @@ function CardActivity({ raceType }) {
                     const imgSrc = activity.image
                         ? `${apiURL.replace('/api/', '')}/uploads/${activity.image}`
                         : defaultCardImg
-
-                    const dateLabel = activity.datetime
-                        ? new Date(activity.datetime).toLocaleDateString('un-UN', {
-                            day: 'numeric', month: 'short', year: 'numeric',
-                        })
-                        : '-'
 
                     const raceLabel = activity.type_race_name || activity.type_race || '-'
 
@@ -110,7 +128,7 @@ function CardActivity({ raceType }) {
                                     </div>
                                 )}
                                 <span className={`absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full ${typeBadge[activity.type_race_name] ?? 'bg-gray-100 text-gray-500'}`}>
-                                    {raceLabel}
+                                    {typeBadgeName[raceLabel]}
                                 </span>
                             </div>
 
@@ -126,20 +144,24 @@ function CardActivity({ raceType }) {
                                     </span>
                                     <span className="flex items-center gap-1">
                                         <Icon icon="mdi:calendar-outline" className="text-blue-400 shrink-0" />
-                                        {dateLabel}
+                                        {formatDate(activity.datetime)}
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                        <Icon icon="mdi:clock-outline" className="text-blue-400 shrink-0" />
+                                        {formatTime(activity.datetime)}
                                     </span>
                                 </div>
 
                                 {user && (
-                                    (user.id !== activity.user_id) ? 
-                                    <button onClick={() => setJoinTarget(activity)}
-                                        className="mt-1 w-full py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded-full cursor-pointer transition"
-                                    >Join Run</button>
-                                    : (
-                                        <span className="mt-1 w-full py-2 bg-gray-300 text-white text-xs font-semibold rounded-full text-center">
-                                            Your Activity
-                                        </span>
-                                    )
+                                    (user.id !== activity.user_id) ?
+                                        <button onClick={() => setJoinTarget(activity)}
+                                            className="mt-1 w-full py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded-full cursor-pointer transition"
+                                        >Join Run</button>
+                                        : (
+                                            <span className="mt-1 w-full py-2 bg-gray-300 text-white text-xs font-semibold rounded-full text-center">
+                                                Your Activity
+                                            </span>
+                                        )
                                 )}
                             </div>
                         </div>

@@ -17,12 +17,15 @@ function Navbar() {
 
   return (
     <>
-      <div className="bg-white text-gray-800 px-4 py-3 rounded-md shadow-md relative">
-    
+      <div className="bg-white text-gray-800 px-4 py-2 shadow-md fixed top-0 left-0 right-0 z-50">
+
         <div className="flex items-center justify-between">
-      
+
           <div className="logo w-32 sm:w-40">
-            <img src={Logo} alt="Logo" className="w-auto object-contain" />
+            <a href='/'>
+             <img src={Logo} alt="Logo" className="w-auto object-contain" />
+            </a>
+            
           </div>
 
           {/* Desktop */}
