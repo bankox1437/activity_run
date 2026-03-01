@@ -1,52 +1,16 @@
 const express = require('express');
 const pool = require('../db');
 const auth = require('../middleware/auth');
-const multer = require('multer');
-const path = require('path');
 
 require('dotenv').config();
 
 const router = express.Router();
 
-// const storage = multer.diskStorage({
-//     destination: (req, file, cb) => cb(null, 'uploads/'),
-//     filename: (req, file, cb) => {
-//         const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-//         cb(null, unique + path.extname(file.originalname));
-//     },
-// });
+const cloudinary = require('../cloudinary');
 
-// const upload = multer({
-//     storage,
-//     limits: { fileSize: 5 * 1024 * 1024 },
-//     fileFilter: (req, file, cb) => {
-//         const allowed = /jpeg|jpg|png|webp/;
-//         const ext = allowed.test(path.extname(file.originalname).toLowerCase());
-//         const mime = allowed.test(file.mimetype);
-//         if (ext && mime) return cb(null, true);
-//         cb(new Error('Only images are allowed'));
-//     },
-// });
-
-const upload = require('../cloudinary')
-
-router.post('/create', auth, (req, res, next) => {
-    upload.single('image')(req, res, (err) => {
-        if (err) {
-            console.error('Multer/Cloudinary Error:', err);
-            return res.status(500).json({
-                message: 'Upload failure',
-                detail: err.message,
-                stack: err.stack,
-                code: err.code
-            });
-        }
-        next();
-    });
-}, async (req, res) => {
-    const { title, location, datetime, raceType, description } = req.body;
+router.post('/create', auth, async (req, res) => {
+    const { title, location, datetime, raceType, description, imageBase64 } = req.body;
     const user_id = req.user.id;
-    const image = req.file ? req.file.path : null;
 
     try {
         const duplicate = await pool.query(
@@ -57,10 +21,19 @@ router.post('/create', auth, (req, res, next) => {
             return res.status(409).json({ message: 'You already have an activity at this date and time' });
         }
 
+        let imageUrl = null;
+        if (imageBase64) {
+            const uploadRes = await cloudinary.uploader.upload(imageBase64, {
+                folder: 'activity_run',
+                allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+            });
+            imageUrl = uploadRes.secure_url;
+        }
+
         const result = await pool.query(
             `INSERT INTO tb_activity (title, location, datetime, type_race, description, image, user_id)
              VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-            [title, location, datetime, raceType, description, image, user_id]
+            [title, location, datetime, raceType, description, imageUrl, user_id]
         );
         res.status(201).json({ activity: result.rows[0] });
     } catch (err) {

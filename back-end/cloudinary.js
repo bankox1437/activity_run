@@ -1,6 +1,4 @@
-const cloudinary = require('cloudinary').v2 ?? require('cloudinary');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -8,12 +6,4 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const storage = new CloudinaryStorage({
-    cloudinary,
-    params: {
-        folder: 'activity_run',   // ชื่อโฟลเดอร์ใน Cloudinary
-        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-    },
-});
-
-module.exports = multer({ storage });
+module.exports = cloudinary;

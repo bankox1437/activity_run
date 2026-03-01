@@ -57,22 +57,32 @@ function CreateActivity() {
 
         const datetime = `${form.date}T${form.time}`
 
-        const formData = new FormData()
-        formData.append('title', form.title)
-        formData.append('location', form.location)
-        formData.append('description', form.description)
-        formData.append('raceType', raceType)
-        formData.append('datetime', datetime)
-        if (imageFile) formData.append('image', imageFile)
+        // Convert image to base64 if exists
+        let imageBase64 = null
+        if (imageFile) {
+            imageBase64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader()
+                reader.onload = () => resolve(reader.result)
+                reader.onerror = reject
+                reader.readAsDataURL(imageFile)
+            })
+        }
 
         try {
             const res = await axios.post(
                 `${apiURL}activity/create`,
-                formData,
+                {
+                    title: form.title,
+                    location: form.location,
+                    description: form.description,
+                    raceType,
+                    datetime,
+                    imageBase64,
+                },
                 {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`,
-                        'Content-Type': 'multipart/form-data',
+                        'Content-Type': 'application/json',
                     },
                 }
             )
