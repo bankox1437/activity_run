@@ -57,15 +57,24 @@ function CreateActivity() {
 
         const datetime = `${form.date}T${form.time}`
 
-        // Convert image to base64 if exists
-        let imageBase64 = null
+        // Upload image directly to Cloudinary from frontend
+        let imageUrl = null
         if (imageFile) {
-            imageBase64 = await new Promise((resolve, reject) => {
-                const reader = new FileReader()
-                reader.onload = () => resolve(reader.result)
-                reader.onerror = reject
-                reader.readAsDataURL(imageFile)
-            })
+            const cloudData = new FormData()
+            cloudData.append('file', imageFile)
+            cloudData.append('upload_preset', 'activity_run')
+            cloudData.append('folder', 'activity_run')
+
+            const cloudRes = await fetch(
+                `https://api.cloudinary.com/v1_1/dizuhvclu/image/upload`,
+                { method: 'POST', body: cloudData }
+            )
+            if (!cloudRes.ok) {
+                Swal.fire({ title: 'Image upload failed', icon: 'error' })
+                return
+            }
+            const cloudJson = await cloudRes.json()
+            imageUrl = cloudJson.secure_url
         }
 
         try {
@@ -77,7 +86,7 @@ function CreateActivity() {
                     description: form.description,
                     raceType,
                     datetime,
-                    imageBase64,
+                    imageUrl,
                 },
                 {
                     headers: {

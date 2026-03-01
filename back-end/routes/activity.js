@@ -9,7 +9,7 @@ const router = express.Router();
 const cloudinary = require('../cloudinary');
 
 router.post('/create', auth, async (req, res) => {
-    const { title, location, datetime, raceType, description, imageBase64 } = req.body;
+    const { title, location, datetime, raceType, description, imageUrl } = req.body;
     const user_id = req.user.id;
 
     try {
@@ -21,19 +21,10 @@ router.post('/create', auth, async (req, res) => {
             return res.status(409).json({ message: 'You already have an activity at this date and time' });
         }
 
-        let imageUrl = null;
-        if (imageBase64) {
-            const uploadRes = await cloudinary.uploader.upload(imageBase64, {
-                folder: 'activity_run',
-                allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-            });
-            imageUrl = uploadRes.secure_url;
-        }
-
         const result = await pool.query(
             `INSERT INTO tb_activity (title, location, datetime, type_race, description, image, user_id)
              VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-            [title, location, datetime, raceType, description, imageUrl, user_id]
+            [title, location, datetime, raceType, description, imageUrl || null, user_id]
         );
         res.status(201).json({ activity: result.rows[0] });
     } catch (err) {
