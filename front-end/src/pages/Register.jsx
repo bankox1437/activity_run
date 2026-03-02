@@ -44,7 +44,7 @@ function Register() {
                 text: res.data.message,
                 icon: 'success',
             }).then(()=>{
-                navigate("/")
+                navigate("/login")
             })
         } catch (err) {
             Swal.fire({

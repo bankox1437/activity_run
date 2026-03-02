@@ -18,10 +18,8 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <div className="flex flex-col min-h-screen">
-          <div className="px-3 sm:px-6 lg:px-10 pt-3 max-w-screen-2xl mx-auto w-full">
-            <Navbar />
-          </div>
-          <div className="px-3 sm:px-6 lg:px-10 mt-4 max-w-screen-2xl mx-auto w-full flex-1">
+          <Navbar />
+          <div className="px-3 sm:px-6 lg:px-10 pt-16 max-w-screen-2xl mx-auto w-full flex-1">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />

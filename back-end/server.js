@@ -23,18 +23,29 @@ app.use(cors({
   },
   credentials: true,
 }))
-app.use(express.json())
+app.use(express.json({ limit: '10mb' }))
 app.use(cookieParser())
-app.use('/uploads', express.static('uploads'))
+// app.use('/uploads', express.static('uploads'))
 
 app.use('/api/auth/login', rateLimit({
   windowMs: 15 * 60 * 1000,
   max: process.env.NODE_ENV === 'production' ? 10 : 100
 }))
 
+app.get('/', (req, res) => res.json({ status: 'ok', message: 'Activity Run API is running' }))
+
 app.use('/api/auth', authRoutes)
 app.use('/api/activity', activityRoutes)
 
-app.listen(process.env.PORT, () =>
-  console.log('Server running on port', process.env.PORT)
+app.use((err, req, res, next) => {
+  console.error('Global Error Handler:', err);
+  res.status(500).json({
+    message: 'Internal Server Error',
+    detail: err.message,
+    stack: process.env.NODE_ENV === 'production' ? null : err.stack
+  });
+});
+
+app.listen(process.env.PORT || 5000, () =>
+  console.log('Server running on port', process.env.PORT || 5000)
 )

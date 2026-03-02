@@ -1,63 +1,79 @@
 const express = require('express');
 const pool = require('../db');
 const auth = require('../middleware/auth');
-const multer = require('multer');
-const path = require('path');
 
 require('dotenv').config();
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, 'uploads/'),
-    filename: (req, file, cb) => {
-        const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-        cb(null, unique + path.extname(file.originalname));
-    },
-});
 
-const upload = multer({
-    storage,
-    limits: { fileSize: 5 * 1024 * 1024 },
-    fileFilter: (req, file, cb) => {
-        const allowed = /jpeg|jpg|png|webp/;
-        const ext = allowed.test(path.extname(file.originalname).toLowerCase());
-        const mime = allowed.test(file.mimetype);
-        if (ext && mime) return cb(null, true);
-        cb(new Error('Only images are allowed'));
-    },
-});
-
-router.post('/create', auth, upload.single('image'), async (req, res) => {
+router.post('/create', auth, async (req, res) => {
     const { title, location, datetime, raceType, description } = req.body;
     const user_id = req.user.id;
-    const image = req.file ? req.file.filename : null;
 
     try {
+        const duplicate = await pool.query(
+            'SELECT id FROM tb_activity WHERE user_id = $1 AND datetime = $2',
+            [user_id, datetime]
+        );
+        if (duplicate.rows.length > 0) {
+            return res.status(409).json({ message: 'You already have an activity at this date and time' });
+        }
+
         const result = await pool.query(
-            `INSERT INTO tb_activity (title, location, datetime, type_race, description, image, user_id)
-             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-            [title, location, datetime, raceType, description, image, user_id]
+            `INSERT INTO tb_activity (title, location, datetime, type_race, description, user_id)
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+            [title, location, datetime, raceType, description, user_id]
         );
         res.status(201).json({ activity: result.rows[0] });
     } catch (err) {
-        console.error('Create error:', err.message);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Create error:', err);
+        res.status(500).json({ message: 'Server error', detail: err.message, stack: err.stack });
     }
 });
 
 router.post('/join/:activity_id', auth, async (req, res) => {
-    const { activity_id } = req.params; 
+    const { activity_id } = req.params;
     const { comment } = req.body;
     const user_id = req.user.id;
 
     try {
+        // get datetime of activity
+        const activityRes = await pool.query(
+            'SELECT datetime FROM tb_activity WHERE id = $1',
+            [activity_id]
+        );
+        if (activityRes.rows.length === 0) {
+            return res.status(404).json({ message: 'Activity not found' });
+        }
+        const targetDatetime = activityRes.rows[0].datetime;
+
+        // check activity passed
+        if (new Date(targetDatetime) < new Date()) {
+            return res.status(400).json({ message: 'This activity has already passed' });
+        }
+
+        // check user joined activity
         const existing = await pool.query(
-            'SELECT id FROM tb_activity_join WHERE activity_id = $1 AND user_id = $2',
+            'SELECT id FROM tb_activity_join WHERE activity_id = $1 AND user_id = $2 AND status != 2',
             [activity_id, user_id]
         );
         if (existing.rows.length > 0) {
             return res.status(409).json({ message: 'You have already joined this activity' });
+        }
+
+        // check time conflict
+        const timeConflict = await pool.query(
+            `SELECT j.id FROM tb_activity_join j
+             JOIN tb_activity a ON a.id = j.activity_id
+             WHERE j.user_id = $1
+               AND a.datetime = $2
+               AND j.activity_id != $3
+               AND j.status != 2`,
+            [user_id, targetDatetime, activity_id]
+        );
+        if (timeConflict.rows.length > 0) {
+            return res.status(409).json({ message: 'You already have a join request for an activity at the same date and time' });
         }
 
         const result = await pool.query(
@@ -116,9 +132,9 @@ router.get('/my-joined', auth, async (req, res) => {
                 rt.race_type_name AS type_race_name,
                     u.first_name AS organizer_first, u.last_name AS organizer_last
              FROM tb_activity_join j
-             JOIN tb_activity a ON a.id = j.activity_id
+             LEFT JOIN tb_activity a ON a.id = j.activity_id
              LEFT JOIN tb_race_type rt ON rt.race_type_id = a.type_race
-             JOIN tb_users u ON u.user_id = a.user_id
+             LEFT JOIN tb_users u ON u.user_id = a.user_id
              WHERE j.user_id = $1
              ORDER BY a.datetime DESC`,
             [user_id]
@@ -140,12 +156,33 @@ router.get('/getRaceType', async (req, res) => {
     }
 });
 
+router.get('/:activity_id/info', async (req, res) => {
+    const { activity_id } = req.params;
+    try {
+        const result = await pool.query(
+            `SELECT a.id, a.title, a.location, a.datetime, a.description,
+             rt.race_type_name AS type_race_name
+             FROM tb_activity a
+             LEFT JOIN tb_race_type rt ON rt.race_type_id = a.type_race
+             WHERE a.id = $1`,
+            [activity_id]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Activity not found' });
+        }
+        res.status(200).json({ data: result.rows[0] });
+    } catch (err) {
+        console.error('activity info error:', err.message);
+        res.status(500).json({ message: 'Failed to fetch activity info' });
+    }
+});
+
 router.get('/:activity_id/requests', auth, async (req, res) => {
     const { activity_id } = req.params;
     const user_id = req.user.id;
 
     try {
-       
+
         const owner = await pool.query(
             'SELECT id FROM tb_activity WHERE id = $1 AND user_id = $2',
             [activity_id, user_id]
@@ -156,9 +193,14 @@ router.get('/:activity_id/requests', auth, async (req, res) => {
 
         const result = await pool.query(
             `SELECT j.id AS join_id, j.comment, j.status, j.user_id,
-            u.first_name, u.last_name
+            u.first_name, u.last_name,
+            to_char(a.datetime AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS datetime,
+            a.title AS activity_title, a.location AS activity_location,
+            rt.race_type_name AS activity_type
              FROM tb_activity_join j
-             JOIN tb_users u ON u.user_id = j.user_id
+             LEFT JOIN tb_activity a ON a.id = j.activity_id
+             LEFT JOIN tb_race_type rt ON rt.race_type_id = a.type_race
+             LEFT JOIN tb_users u ON u.user_id = j.user_id
              WHERE j.activity_id = $1
              ORDER BY j.id ASC`,
             [activity_id]
@@ -183,7 +225,6 @@ router.patch('/request/:join_id', auth, async (req, res) => {
     }
 
     try {
-        // ยืนยันว่า join request นี้เป็นของ activity ที่ user เป็นเจ้าของ
         const check = await pool.query(
             `SELECT j.id FROM tb_activity_join j
              JOIN tb_activity a ON a.id = j.activity_id
@@ -202,6 +243,31 @@ router.patch('/request/:join_id', auth, async (req, res) => {
     } catch (err) {
         console.error('patch request error:', err.message);
         res.status(500).json({ message: 'Failed to update request' });
+    }
+});
+
+// Only pending
+router.delete('/join/:join_id', auth, async (req, res) => {
+    const { join_id } = req.params;
+    const user_id = req.user.id;
+
+    try {
+        const join = await pool.query(
+            'SELECT id, status FROM tb_activity_join WHERE id = $1 AND user_id = $2',
+            [join_id, user_id]
+        );
+        if (join.rows.length === 0) {
+            return res.status(403).json({ message: 'Not authorized to cancel this request' });
+        }
+        if (join.rows[0].status !== 0) {
+            return res.status(400).json({ message: 'Can only cancel pending requests' });
+        }
+
+        await pool.query('DELETE FROM tb_activity_join WHERE id = $1', [join_id]);
+        res.status(200).json({ message: 'Join request cancelled' });
+    } catch (err) {
+        console.error('Cancel join error:', err.message);
+        res.status(500).json({ message: 'Server error' });
     }
 });
 
