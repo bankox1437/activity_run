@@ -156,6 +156,27 @@ router.get('/getRaceType', async (req, res) => {
     }
 });
 
+router.get('/:activity_id/info', async (req, res) => {
+    const { activity_id } = req.params;
+    try {
+        const result = await pool.query(
+            `SELECT a.id, a.title, a.location, a.datetime, a.description,
+             rt.race_type_name AS type_race_name
+             FROM tb_activity a
+             LEFT JOIN tb_race_type rt ON rt.race_type_id = a.type_race
+             WHERE a.id = $1`,
+            [activity_id]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Activity not found' });
+        }
+        res.status(200).json({ data: result.rows[0] });
+    } catch (err) {
+        console.error('activity info error:', err.message);
+        res.status(500).json({ message: 'Failed to fetch activity info' });
+    }
+});
+
 router.get('/:activity_id/requests', auth, async (req, res) => {
     const { activity_id } = req.params;
     const user_id = req.user.id;

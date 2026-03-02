@@ -49,19 +49,20 @@ function ActivityRequests() {
 
         const fetchData = async () => {
             try {
-                const reqRes = await axios.get(
-                    `${apiURL}activity/${activityId}/requests`, { headers }
-                )
+                const [reqRes, infoRes] = await Promise.all([
+                    axios.get(`${apiURL}activity/${activityId}/requests`, { headers }),
+                    axios.get(`${apiURL}activity/${activityId}/info`),
+                ])
 
                 const rows = reqRes.data.data || []
+                const info = infoRes.data.data
 
-                // Derive activity header from first row (all rows share the same activity)
-                if (rows.length > 0) {
+                if (info) {
                     setActivity({
-                        title: rows[0].activity_title,
-                        location: rows[0].activity_location,
-                        datetime: rows[0].datetime,
-                        type_race_name: rows[0].activity_type,
+                        title: info.title,
+                        location: info.location,
+                        datetime: info.datetime,
+                        type_race_name: info.type_race_name,
                     })
                 }
 
