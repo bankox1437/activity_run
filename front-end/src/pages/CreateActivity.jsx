@@ -12,6 +12,9 @@ function CreateActivity() {
     const apiURL = import.meta.env.VITE_API_URL;
     const navigate = useNavigate()
 
+    // วันนี้ในรูปแบบ YYYY-MM-DD สำหรับ min ของ date input
+    const todayStr = new Date().toISOString().split('T')[0]
+
     const [raceType, setRaceType] = useState('')
     const [raceTypes, setRaceTypes] = useState([]) // Dropdown
 
@@ -41,6 +44,18 @@ function CreateActivity() {
                 title: 'Please fill in all required fields',
                 text: 'Title, Date, Time and Race Type are required',
                 icon: 'warning',
+            })
+            return
+        }
+
+        // ตรวจสอบว่าไม่ได้เลือกวันและเวลาในอดีต
+        const selectedDatetime = new Date(`${form.date}T${form.time}`)
+        if (selectedDatetime < new Date()) {
+            Swal.fire({
+                title: 'Invalid date/time',
+                text: 'Cannot create an activity in the past',
+                icon: 'warning',
+                confirmButtonColor: '#3b82f6',
             })
             return
         }
@@ -137,6 +152,7 @@ function CreateActivity() {
                                     type="date"
                                     name="date"
                                     value={form.date}
+                                    min={todayStr}
                                     onChange={handleChange}
                                     className="w-full pl-9 pr-3 py-2.5 rounded-full border border-gray-200 bg-gray-50 text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
                                 />

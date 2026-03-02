@@ -8,22 +8,6 @@ import defaultCardImg from '../assets/cards_img/card_run.jpg'
 
 const apiURL = import.meta.env.VITE_API_URL
 
-const typeBadge = {
-    '5k': 'bg-blue-100 text-blue-600',
-    '10k': 'bg-green-100 text-green-600',
-    'half': 'bg-purple-100 text-purple-600',
-    'full': 'bg-red-100 text-red-600',
-    'trail': 'bg-orange-100 text-orange-600',
-}
-
-const typeBadgeName = {
-    '5k': '5K',
-    '10k': '10K',
-    'half': 'Half Marathon',
-    'full': 'Full Marathon',
-    'trail': 'Trail',
-}
-
 function formatDate(datetime) {
     if (!datetime) return '-'
     return new Date(datetime).toLocaleDateString('en-GB', {
@@ -129,6 +113,7 @@ function CardActivity({ raceType }) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filtered.map((activity) => {
+                    const isPast = new Date(activity.datetime) < new Date()
                     return (
                         <div
                             key={activity.id}
@@ -140,9 +125,14 @@ function CardActivity({ raceType }) {
                                     alt={activity.title}
                                     className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                                 />
-                                <span className={`absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full ${typeBadge[activity.type_race_name] ?? 'bg-gray-100 text-gray-500'}`}>
-                                    {typeBadgeName[activity.type_race_name || activity.type_race] || activity.type_race_name || '-'}
+                                <span className="absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full bg-black/40 text-white">
+                                    {activity.type_race_name || '-'}
                                 </span>
+                                {isPast && (
+                                    <span className="absolute top-3 right-3 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-700/80 text-white">
+                                        Expired
+                                    </span>
+                                )}
                             </div>
 
                             <div className="p-4 flex flex-col gap-2">
@@ -169,7 +159,11 @@ function CardActivity({ raceType }) {
                                         className="mt-1 mx-1 w-full py-2 bg-gray-400 hover:bg-gray-500 text-white text-xs font-semibold rounded-full cursor-pointer transition">
                                         View
                                     </button>
-                                    {user && (
+                                    {isPast ? (
+                                        <span className="mt-1 w-full py-2 bg-gray-200 text-gray-400 text-xs font-semibold rounded-full text-center block">
+                                            Expired
+                                        </span>
+                                    ) : user && (
                                         user.id === activity.user_id ? (
                                             <span className="mt-1 w-full py-2 bg-gray-300 text-white text-xs font-semibold rounded-full text-center block">
                                                 Your Activity
@@ -190,7 +184,6 @@ function CardActivity({ raceType }) {
                                                 Join Run
                                             </button>
                                         )
-
                                     )}
                                 </div>
 

@@ -38,12 +38,42 @@ router.post('/join/:activity_id', auth, async (req, res) => {
     const user_id = req.user.id;
 
     try {
+        // get datetime of activity
+        const activityRes = await pool.query(
+            'SELECT datetime FROM tb_activity WHERE id = $1',
+            [activity_id]
+        );
+        if (activityRes.rows.length === 0) {
+            return res.status(404).json({ message: 'Activity not found' });
+        }
+        const targetDatetime = activityRes.rows[0].datetime;
+
+        // check activity passed
+        if (new Date(targetDatetime) < new Date()) {
+            return res.status(400).json({ message: 'This activity has already passed' });
+        }
+
+        // check user joined activity
         const existing = await pool.query(
-            'SELECT id FROM tb_activity_join WHERE activity_id = $1 AND user_id = $2 AND status NOT IN(2)',
+            'SELECT id FROM tb_activity_join WHERE activity_id = $1 AND user_id = $2 AND status != 2',
             [activity_id, user_id]
         );
         if (existing.rows.length > 0) {
             return res.status(409).json({ message: 'You have already joined this activity' });
+        }
+
+        // check time conflict
+        const timeConflict = await pool.query(
+            `SELECT j.id FROM tb_activity_join j
+             JOIN tb_activity a ON a.id = j.activity_id
+             WHERE j.user_id = $1
+               AND a.datetime = $2
+               AND j.activity_id != $3
+               AND j.status != 2`,
+            [user_id, targetDatetime, activity_id]
+        );
+        if (timeConflict.rows.length > 0) {
+            return res.status(409).json({ message: 'You already have a join request for an activity at the same date and time' });
         }
 
         const result = await pool.query(
@@ -102,9 +132,9 @@ router.get('/my-joined', auth, async (req, res) => {
                 rt.race_type_name AS type_race_name,
                     u.first_name AS organizer_first, u.last_name AS organizer_last
              FROM tb_activity_join j
-             JOIN tb_activity a ON a.id = j.activity_id
+             LEFT JOIN tb_activity a ON a.id = j.activity_id
              LEFT JOIN tb_race_type rt ON rt.race_type_id = a.type_race
-             JOIN tb_users u ON u.user_id = a.user_id
+             LEFT JOIN tb_users u ON u.user_id = a.user_id
              WHERE j.user_id = $1
              ORDER BY a.datetime DESC`,
             [user_id]
@@ -170,7 +200,6 @@ router.patch('/request/:join_id', auth, async (req, res) => {
     }
 
     try {
-        // ยืนยันว่า join request นี้เป็นของ activity ที่ user เป็นเจ้าของ
         const check = await pool.query(
             `SELECT j.id FROM tb_activity_join j
              JOIN tb_activity a ON a.id = j.activity_id
@@ -189,6 +218,31 @@ router.patch('/request/:join_id', auth, async (req, res) => {
     } catch (err) {
         console.error('patch request error:', err.message);
         res.status(500).json({ message: 'Failed to update request' });
+    }
+});
+
+// Only pending
+router.delete('/join/:join_id', auth, async (req, res) => {
+    const { join_id } = req.params;
+    const user_id = req.user.id;
+
+    try {
+        const join = await pool.query(
+            'SELECT id, status FROM tb_activity_join WHERE id = $1 AND user_id = $2',
+            [join_id, user_id]
+        );
+        if (join.rows.length === 0) {
+            return res.status(403).json({ message: 'Not authorized to cancel this request' });
+        }
+        if (join.rows[0].status !== 0) {
+            return res.status(400).json({ message: 'Can only cancel pending requests' });
+        }
+
+        await pool.query('DELETE FROM tb_activity_join WHERE id = $1', [join_id]);
+        res.status(200).json({ message: 'Join request cancelled' });
+    } catch (err) {
+        console.error('Cancel join error:', err.message);
+        res.status(500).json({ message: 'Server error' });
     }
 });
 

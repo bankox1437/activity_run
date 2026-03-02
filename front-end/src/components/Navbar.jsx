@@ -23,9 +23,9 @@ function Navbar() {
 
           <div className="logo w-32 sm:w-40">
             <a href='/'>
-             <img src={Logo} alt="Logo" className="w-auto object-contain" />
+              <img src={Logo} alt="Logo" className="w-auto object-contain" />
             </a>
-            
+
           </div>
 
           {/* Desktop */}

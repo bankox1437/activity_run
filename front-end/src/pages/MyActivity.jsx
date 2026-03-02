@@ -2,22 +2,15 @@ import React, { useState, useEffect, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import axios from 'axios'
+import Swal from 'sweetalert2'
 import { AuthContext } from '../context/AuthContext'
 
 const apiURL = import.meta.env.VITE_API_URL
 
-const raceTypeColor = {
-  '5k': 'bg-blue-100 text-blue-600',
-  '10k': 'bg-green-100 text-green-600',
-  'half': 'bg-purple-100 text-purple-600',
-  'full': 'bg-red-100 text-red-600',
-  'trail': 'bg-orange-100 text-orange-600',
-}
-
 const statusConfig = {
-  0: { label: 'Processing', icon: 'mdi:clock-outline', cls: 'bg-yellow-50 text-yellow-600 border-yellow-200', dot: 'bg-yellow-400' },
-  1: { label: 'Accepted', icon: 'mdi:check-circle-outline', cls: 'bg-green-50 text-green-600 border-green-200', dot: 'bg-green-400' },
-  2: { label: 'Rejected', icon: 'mdi:close-circle-outline', cls: 'bg-red-50 text-red-500 border-red-200', dot: 'bg-red-400' },
+  0: { label: 'Processing', icon: 'mdi:clock-outline', cls: 'bg-yellow-50 text-yellow-600 border-yellow-200' },
+  1: { label: 'Accepted', icon: 'mdi:check-circle-outline', cls: 'bg-green-50 text-green-600 border-green-200' },
+  2: { label: 'Rejected', icon: 'mdi:close-circle-outline', cls: 'bg-red-50 text-red-500 border-red-200' },
 }
 
 function formatDate(datetime) {
@@ -37,14 +30,13 @@ function CreatedCard({ activity }) {
 
   return (
     <div className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col">
-
       <div className="p-5 flex flex-col gap-4 flex-1">
 
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <h3 className="font-bold text-gray-900 text-base leading-snug truncate">{activity.title}</h3>
           </div>
-          <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${raceTypeColor[activity.type_race_name] ?? 'bg-gray-100 text-gray-500'}`}>
+          <span className="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
             {activity.type_race_name ?? '-'}
           </span>
         </div>
@@ -81,27 +73,26 @@ function CreatedCard({ activity }) {
           <Icon icon="mdi:account-check-outline" className="text-base" />
           Manage
         </button>
+
       </div>
     </div>
   )
 }
 
-function JoinedCard({ activity }) {
+function JoinedCard({ activity, onCancel }) {
   const statusKey = Number(activity.status)
   const cfg = statusConfig[statusKey] ?? statusConfig[0]
   const organizer = `${activity.organizer_first ?? ''} ${activity.organizer_last ?? ''}`.trim() || '-'
 
   return (
     <div className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col">
-
       <div className="p-5 flex flex-col gap-4 flex-1">
 
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <h3 className="font-bold text-gray-900 text-base leading-snug truncate">{activity.title}</h3>
           </div>
-          <span className={`shrink-0 flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full border ${cfg.cls}`}>
-            <span className={`w-1.5 h-1.5 rounded-full`} />
+          <span className={`flex items-center text-xs font-semibold px-2.5 py-1 rounded-full border ${cfg.cls}`}>
             {cfg.label}
           </span>
         </div>
@@ -130,10 +121,20 @@ function JoinedCard({ activity }) {
             </div>
             <span className="truncate">{organizer}</span>
           </div>
-          <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${raceTypeColor[activity.type_race_name] ?? 'bg-gray-100 text-gray-500'}`}>
+          <span className="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
             {activity.type_race_name ?? '-'}
           </span>
         </div>
+
+        {statusKey === 0 && (
+          <button
+            onClick={() => onCancel(activity)}
+            className="mt-auto w-full py-2 rounded-xl border border-red-200 text-red-500 text-sm font-semibold hover:bg-red-50 transition flex items-center justify-center gap-1.5"
+          >
+            <Icon icon="mdi:close-circle-outline" className="text-base" />
+            Cancel Request
+          </button>
+        )}
 
       </div>
     </div>
@@ -149,10 +150,9 @@ function MyActivity() {
   const [joined, setJoined] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  const fetchData = () => {
     const token = localStorage.getItem('token')
     const headers = { Authorization: `Bearer ${token}` }
-
     Promise.all([
       axios.get(`${apiURL}activity/my-created`, { headers }),
       axios.get(`${apiURL}activity/my-joined`, { headers }),
@@ -163,7 +163,32 @@ function MyActivity() {
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false))
-  }, [])
+  }
+
+  useEffect(() => { fetchData() }, [])
+
+  const handleCancelJoin = async (activity) => {
+    const result = await Swal.fire({
+      title: 'Cancel Request?',
+      text: `Cancel your join request for "${activity.title}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, cancel',
+    })
+    if (!result.isConfirmed) return
+
+    try {
+      await axios.delete(`${apiURL}activity/join/${activity.join_id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      })
+      setJoined((prev) => prev.filter((j) => j.join_id !== activity.join_id))
+      Swal.fire({ title: 'Cancelled', text: 'Your join request has been cancelled.', icon: 'success', confirmButtonColor: '#3b82f6' })
+    } catch (err) {
+      Swal.fire({ title: 'Error', text: err.response?.data?.message || 'Cancel failed', icon: 'error', confirmButtonColor: '#3b82f6' })
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 max-w-4xl mx-auto">
@@ -219,11 +244,14 @@ function MyActivity() {
             joined.length === 0
               ? <EmptyState message="You haven't joined any activities yet." />
               : <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {joined.map((a) => <JoinedCard key={a.join_id} activity={a} />)}
+                {joined.map((a) => (
+                  <JoinedCard key={a.join_id} activity={a} onCancel={() => handleCancelJoin(a)} />
+                ))}
               </div>
           )}
         </>
       )}
+
     </div>
   )
 }
