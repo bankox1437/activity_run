@@ -172,9 +172,13 @@ router.get('/:activity_id/requests', auth, async (req, res) => {
 
         const result = await pool.query(
             `SELECT j.id AS join_id, j.comment, j.status, j.user_id,
-            u.first_name, u.last_name, a.datetime
+            u.first_name, u.last_name,
+            to_char(a.datetime AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS datetime,
+            a.title AS activity_title, a.location AS activity_location,
+            rt.race_type_name AS activity_type
              FROM tb_activity_join j
              LEFT JOIN tb_activity a ON a.id = j.activity_id
+             LEFT JOIN tb_race_type rt ON rt.race_type_id = a.type_race
              LEFT JOIN tb_users u ON u.user_id = j.user_id
              WHERE j.activity_id = $1
              ORDER BY j.id ASC`,

@@ -11,34 +11,22 @@ const statusConfig = {
     rejected: { label: 'Rejected', cls: 'bg-red-100 text-red-500', icon: 'mdi:close-circle-outline' },
 }
 
-const typeBadgeName = {
-    '5k': '5K',
-    '10k': '10K',
-    'half': 'Half Marathon',
-    'full': 'Full Marathon',
-    'trail': 'Trail',
-}
-
 function intToStatus(val) {
     if (val === 1) return 'accepted'
     if (val === 2) return 'rejected'
     return 'pending'
 }
 
-function getInitials(first, last) {
-    return `${(first?.[0] ?? '').toUpperCase()}${(last?.[0] ?? '').toUpperCase()}`
-}
-
 function formatDate(datetime) {
-  if (!datetime) return '-'
-  return new Date(datetime).toLocaleDateString('en-GB', {
-    day: 'numeric', month: 'short', year: 'numeric',
-  })
+    if (!datetime) return '-'
+    return new Date(datetime).toLocaleDateString('en-GB', {
+        day: 'numeric', month: 'short', year: 'numeric',
+    })
 }
 
 function formatTime(datetime) {
-  if (!datetime) return '-'
-  return new Date(datetime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+    if (!datetime) return '-'
+    return new Date(datetime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
 }
 
 function ActivityRequests() {
@@ -59,18 +47,25 @@ function ActivityRequests() {
     useEffect(() => {
         if (!activityId) return
 
-        const fetchAll = async () => {
+        const fetchData = async () => {
             try {
-                const [actRes, reqRes] = await Promise.all([
-                    axios.get(`${apiURL}activity/all`),
-                    axios.get(`${apiURL}activity/${activityId}/requests`, { headers }),
-                ])
+                const reqRes = await axios.get(
+                    `${apiURL}activity/${activityId}/requests`, { headers }
+                )
 
-                const found = actRes.data.data?.find(a => String(a.id) === String(activityId))
-                setActivity(found ?? null)
+                const rows = reqRes.data.data || []
 
-                // boolean → string
-                const normalized = reqRes.data.data.map(r => ({
+                // Derive activity header from first row (all rows share the same activity)
+                if (rows.length > 0) {
+                    setActivity({
+                        title: rows[0].activity_title,
+                        location: rows[0].activity_location,
+                        datetime: rows[0].datetime,
+                        type_race_name: rows[0].activity_type,
+                    })
+                }
+
+                const normalized = rows.map(r => ({
                     ...r,
                     statusStr: intToStatus(r.status),
                 }))
@@ -82,15 +77,9 @@ function ActivityRequests() {
             }
         }
 
-        fetchAll()
+        fetchData()
     }, [activityId])
 
-    useEffect(()=>{
-        console.log(requests);
-        
-    },[requests])
-
-    // accept / reject
     const updateStatus = async (join_id, action) => {
         setUpdating(true)
         try {
@@ -149,18 +138,28 @@ function ActivityRequests() {
                 <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-6">
                     <h2 className="text-lg font-extrabold text-gray-900 truncate">{activity.title}</h2>
                     <div className="flex flex-wrap gap-3 mt-1 text-xs text-gray-500">
-                        <span className="flex items-center gap-1"><Icon icon="mdi:map-marker-outline" />{activity.location || '-'}</span>
+                        <span className="flex items-center gap-1">
+                            <Icon icon="mdi:map-marker-outline" />{activity.location || '-'}
+                        </span>
                         <span className="flex items-center gap-1">
                             <Icon icon="mdi:calendar-outline" />
-                            {activity.datetime ? new Date(activity.datetime).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
+                            {formatDate(activity.datetime)}
                         </span>
                         <span className="flex items-center gap-1">
                             <Icon icon="mdi:run-fast" />
-                            {typeBadgeName[activity.type_race_name] || '-'}
+                            {activity.type_race_name || '-'}
                         </span>
                     </div>
                 </div>
             )}
+
+            {/* If no requests yet, show activity info fallback note */}
+            {!activity && requests.length === 0 && !loading && (
+                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-6">
+                    <p className="text-sm text-gray-400">No requests yet for this activity.</p>
+                </div>
+            )}
+
             <div className="flex flex-wrap gap-2 mb-5">
                 {[
                     { key: 'all', label: 'All', icon: 'mdi:view-grid-outline' },
@@ -172,14 +171,13 @@ function ActivityRequests() {
                         key={f.key}
                         onClick={() => setFilter(f.key)}
                         className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition border ${filter === f.key
-                                ? 'bg-blue-500 text-white border-blue-500 shadow-sm'
-                                : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-500'
+                            ? 'bg-blue-500 text-white border-blue-500 shadow-sm'
+                            : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-500'
                             }`}
                     >
                         <Icon icon={f.icon} className="text-base" />
                         {f.label}
-                        <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${filter === f.key ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-600'
-                            }`}>
+                        <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${filter === f.key ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-600'}`}>
                             {counts[f.key]}
                         </span>
                     </button>
@@ -196,25 +194,24 @@ function ActivityRequests() {
 
                 {filtered.map((req) => {
                     const cfg = statusConfig[req.statusStr]
-                    const initials = getInitials(req.first_name, req.last_name)
 
                     return (
                         <div
                             key={req.join_id}
                             className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 flex items-start gap-4 hover:shadow-md transition"
                         >
-
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
                                     <span className="font-bold text-gray-900 text-sm">{req.first_name} {req.last_name}</span>
-    
                                     <span className={`flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full ${cfg.cls}`}>
                                         <Icon icon={cfg.icon} className="text-sm" />
                                         {cfg.label}
                                     </span>
                                 </div>
                                 <div className="flex items-center my-1">
-                                    <p className="text-gray-500 text-xs">{formatDate(req.datetime)} {formatTime(req.datetime)}</p>
+                                    <p className="text-gray-500 text-xs">
+                                        {formatDate(req.datetime)} {formatTime(req.datetime)}
+                                    </p>
                                 </div>
                                 {req.comment && (
                                     <p className="text-xs text-gray-500 mt-1.5 bg-gray-50 rounded-xl px-3 py-2">
@@ -239,7 +236,6 @@ function ActivityRequests() {
                                     </button>
                                 </div>
                             )}
-
                         </div>
                     )
                 })}
@@ -267,8 +263,7 @@ function ActivityRequests() {
                             <button
                                 onClick={() => updateStatus(confirmModal.join_id, confirmModal.action)}
                                 disabled={updating}
-                                className={`flex-1 py-2.5 rounded-full text-white text-sm font-semibold transition flex items-center justify-center gap-2 ${confirmModal.action === 'accepted' ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'
-                                    }`}
+                                className={`flex-1 py-2.5 rounded-full text-white text-sm font-semibold transition flex items-center justify-center gap-2 ${confirmModal.action === 'accepted' ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`}
                             >
                                 {updating && <Icon icon="mdi:loading" className="animate-spin" />}
                                 {confirmModal.action === 'accepted' ? 'Yes, Accept' : 'Yes, Reject'}
