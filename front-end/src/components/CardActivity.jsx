@@ -21,7 +21,7 @@ function formatTime(datetime) {
 }
 
 
-function CardActivity({ raceType }) {
+function CardActivity({ raceType, selectedDate }) {
 
     const { user } = useContext(AuthContext)
 
@@ -73,14 +73,16 @@ function CardActivity({ raceType }) {
         </div>
     )
 
-    const filtered = raceType === 'all'
-        ? activities
-        : activities.filter((a) => a.type_race_name === raceType)
+    const filtered = activities.filter((a) => {
+        const matchType = raceType === 'all' || a.type_race_name === raceType
+        const activityDate = a.datetime ? a.datetime.split('T')[0] : ''
+        const matchDate = !selectedDate || activityDate === selectedDate
+        return matchType && matchDate
+    })
 
     if (filtered.length === 0) return (
         <div className="flex flex-col items-center py-16 text-gray-300">
-            <Icon icon="mdi:run-fast" className="text-6xl mb-2" />
-            <p className="text-sm text-gray-400">No activities found.</p>
+            <p className="text-sm text-gray-400">No activities found</p>
         </div>
     )
 

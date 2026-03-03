@@ -9,6 +9,7 @@ import { AuthContext } from '../context/AuthContext'
 
 function Home() {
   const [raceType, setRaceType] = useState('all')
+  const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString('en-CA'))
   const navigate = useNavigate()
   const { user, loading } = useContext(AuthContext)
 
@@ -43,11 +44,35 @@ function Home() {
       </div>
 
       <div className="mt-7">
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
           <h2 className="text-lg sm:text-xl font-extrabold text-gray-900">Activities</h2>
+
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Icon
+                icon="mdi:calendar-search"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none"
+              />
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="pl-9 pr-8 py-2 rounded-full border border-gray-200 bg-gray-50 text-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+              />
+              {selectedDate && (
+                <button
+                  onClick={() => setSelectedDate('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 transition"
+                >
+                  <Icon icon="mdi:close-circle" />
+                </button>
+              )}
+            </div>
+          </div>
         </div>
+
         <OptionActivity onChangeType={setRaceType} />
-        <CardActivity raceType={raceType} />
+        <CardActivity raceType={raceType} selectedDate={selectedDate} />
       </div>
 
     </div>

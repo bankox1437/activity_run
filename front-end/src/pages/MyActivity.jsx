@@ -25,7 +25,7 @@ function formatTime(datetime) {
   return new Date(datetime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
 }
 
-function CreatedCard({ activity }) {
+function CreatedCard({ activity, onRemove }) {
   const navigate = useNavigate()
 
   return (
@@ -66,13 +66,41 @@ function CreatedCard({ activity }) {
           </span>
         </div>
 
-        <button
-          onClick={() => navigate(`/activity/${activity.id}/requests`)}
-          className="mt-auto w-full py-2.5 rounded-xl bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 active:bg-blue-700 transition flex items-center justify-center gap-2"
-        >
-          <Icon icon="mdi:account-check-outline" className="text-base" />
-          Manage
-        </button>
+        <div className="grid grid-cols-2 gap-2 mt-auto">
+          <button
+            onClick={() => navigate(`/activity/${activity.id}/requests`)}
+            className="flex-1 py-2 rounded-xl bg-blue-500 text-white text-xs font-semibold hover:bg-blue-600 transition flex items-center justify-center gap-1.5"
+          >
+            <Icon icon="mdi:account-check-outline" className="text-base" />
+            Manage
+          </button>
+          <div className="flex">
+            <button
+              onClick={() => {
+                if (Number(activity.participant_count) > 0) {
+                  Swal.fire({
+                    title: 'Cannot Edit',
+                    text: 'This activity already has participants and cannot be edited.',
+                    icon: 'warning',
+                    confirmButtonColor: '#3b82f6',
+                  })
+                  return
+                }
+                navigate(`/activity/${activity.id}/update`)
+              }}
+              className="flex-1 py-2 mx-2 rounded-xl border border-yellow-200 text-yellow-500 text-xs font-semibold hover:bg-yellow-50 transition flex items-center justify-center gap-1.5"
+            >
+              <Icon icon="mdi:edit-outline" className="text-base" />
+            </button>
+            <button
+              onClick={() => onRemove(activity)}
+              className="flex-1 py-2 rounded-xl border border-red-100 text-red-500 text-xs font-semibold hover:bg-red-50 transition flex items-center justify-center gap-1.5"
+            >
+              <Icon icon="mdi:trash-can-outline" className="text-base" />
+            </button>
+          </div>
+
+        </div>
 
       </div>
     </div>
@@ -190,6 +218,34 @@ function MyActivity() {
     }
   }
 
+  const handleDeleteActivity = async (activity) => {
+    const result = await Swal.fire({
+      title: 'Delete Activity?',
+      text: `Are you sure you want to delete "${activity.title}"? This cannot be undone.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, delete',
+    })
+    if (!result.isConfirmed) return
+
+    try {
+      await axios.delete(`${apiURL}activity/${activity.id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      })
+      setCreated((prev) => prev.filter((a) => a.id !== activity.id))
+      Swal.fire({ title: 'Deleted', text: 'Activity has been deleted.', icon: 'success', confirmButtonColor: '#3b82f6' })
+    } catch (err) {
+      Swal.fire({
+        title: 'Delete Failed',
+        text: err.response?.data?.message || 'Failed to delete activity',
+        icon: 'error',
+        confirmButtonColor: '#3b82f6'
+      })
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 max-w-4xl mx-auto">
 
@@ -236,7 +292,7 @@ function MyActivity() {
             created.length === 0
               ? <EmptyState message="You haven't created any activities yet." />
               : <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {created.map((a) => <CreatedCard key={a.id} activity={a} />)}
+                {created.map((a) => <CreatedCard key={a.id} activity={a} onRemove={handleDeleteActivity} />)}
               </div>
           )}
 
@@ -259,9 +315,6 @@ function MyActivity() {
 function EmptyState({ message }) {
   return (
     <div className="flex flex-col items-center justify-center py-24 text-gray-400">
-      <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-        <Icon icon="mdi:run-fast" className="text-3xl text-gray-300" />
-      </div>
       <p className="text-sm text-gray-400">{message}</p>
     </div>
   )

@@ -8,9 +8,11 @@ import Navbar from './components/Navbar'
 import MyActivity from './pages/MyActivity';
 import CreateActivity from './pages/CreateActivity';
 import ActivityRequests from './pages/ActivityRequests';
+import UpdateActivity from './pages/UpdateActivity';
 
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider } from './context/AuthContext'
+import Profile from './pages/Profile';
 
 function App() {
 
@@ -27,6 +29,8 @@ function App() {
               <Route path="/myActivity" element={<ProtectedRoute><MyActivity /></ProtectedRoute>} />
               <Route path="/createActivity" element={<ProtectedRoute><CreateActivity /></ProtectedRoute>} />
               <Route path="/activity/:id/requests" element={<ProtectedRoute><ActivityRequests /></ProtectedRoute>} />
+              <Route path="/activity/:id/update" element={<ProtectedRoute><UpdateActivity /></ProtectedRoute>} />
+              <Route path="/myProfile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             </Routes>
           </div>
         </div>

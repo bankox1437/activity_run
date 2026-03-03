@@ -6,6 +6,40 @@ require('dotenv').config();
 
 const router = express.Router();
 
+router.get('/profile', auth, async (req, res) => {
+    const user_id = req.user.id;
+
+    try {
+        const result = await pool.query('SELECT first_name, last_name, email FROM tb_users WHERE user_id = $1', [
+            user_id
+        ]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({ data: result.rows[0] });
+
+    } catch (err) {
+        console.error('Profile error:', err.message);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+router.put('/updateProfile', auth, async (req, res) => {
+    const user_id = req.user.id;
+    const { firstName, lastName } = req.body;
+
+    try {
+        const result = await pool.query('UPDATE tb_users SET first_name = $1, last_name = $2 WHERE user_id = $3',
+            [firstName, lastName, user_id])
+
+        res.status(200).json({ message: 'Update Profile Successfully!', detail: result.rows[0] })
+    } catch (err) {
+        console.error('Update profile error:', err.message);
+        res.status(500).json({ message: 'Server Error' });
+    }
+})
 
 router.post('/create', auth, async (req, res) => {
     const { title, location, datetime, raceType, description } = req.body;
@@ -109,7 +143,7 @@ router.get('/my-created', auth, async (req, res) => {
         const result = await pool.query(
             `SELECT a.*,
             rt.race_type_name AS type_race_name,
-            (SELECT COUNT(*) FROM tb_activity_join j WHERE j.activity_id = a.id) AS participant_count
+            (SELECT COUNT(*) FROM tb_activity_join j WHERE j.activity_id = a.id AND j.status != 2) AS participant_count
              FROM tb_activity a
              LEFT JOIN tb_race_type rt ON rt.race_type_id = a.type_race
              WHERE a.user_id = $1
@@ -160,7 +194,7 @@ router.get('/:activity_id/info', async (req, res) => {
     const { activity_id } = req.params;
     try {
         const result = await pool.query(
-            `SELECT a.id, a.title, a.location, a.datetime, a.description,
+            `SELECT a.id, a.title, a.location, a.datetime, a.description, a.type_race,
              rt.race_type_name AS type_race_name
              FROM tb_activity a
              LEFT JOIN tb_race_type rt ON rt.race_type_id = a.type_race
@@ -193,10 +227,10 @@ router.get('/:activity_id/requests', auth, async (req, res) => {
 
         const result = await pool.query(
             `SELECT j.id AS join_id, j.comment, j.status, j.user_id,
-            u.first_name, u.last_name,
-            to_char(a.datetime AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS datetime,
-            a.title AS activity_title, a.location AS activity_location,
-            rt.race_type_name AS activity_type
+                u.first_name, u.last_name,
+                to_char(a.datetime AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS datetime,
+                a.title AS activity_title, a.location AS activity_location,
+                rt.race_type_name AS activity_type
              FROM tb_activity_join j
              LEFT JOIN tb_activity a ON a.id = j.activity_id
              LEFT JOIN tb_race_type rt ON rt.race_type_id = a.type_race
@@ -267,6 +301,76 @@ router.delete('/join/:join_id', auth, async (req, res) => {
         res.status(200).json({ message: 'Join request cancelled' });
     } catch (err) {
         console.error('Cancel join error:', err.message);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+router.delete('/:activity_id', auth, async (req, res) => {
+    const { activity_id } = req.params;
+    const user_id = req.user.id;
+
+    try {
+        const activity = await pool.query(
+            'SELECT id FROM tb_activity WHERE id = $1 AND user_id = $2',
+            [activity_id, user_id]
+        );
+
+        if (activity.rows.length === 0) {
+            return res.status(404).json({ message: 'Activity not found or you are not the owner' });
+        }
+
+        const participants = await pool.query(
+            'SELECT id FROM tb_activity_join WHERE activity_id = $1',
+            [activity_id]
+        );
+
+        if (participants.rows.length > 0) {
+            return res.status(400).json({ message: 'Cannot delete activity that has participants' });
+        }
+
+        await pool.query('DELETE FROM tb_activity WHERE id = $1', [activity_id]);
+
+        res.status(200).json({ message: 'Activity deleted successfully' });
+    } catch (err) {
+        console.error('Delete activity error:', err.message);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+router.put('/update/:activity_id', auth, async (req, res) => {
+    const { activity_id } = req.params;
+    const user_id = req.user.id;
+    const { title, location, datetime, raceType, description } = req.body;
+
+    try {
+        // Check ownership
+        const activity = await pool.query(
+            'SELECT id FROM tb_activity WHERE id = $1 AND user_id = $2',
+            [activity_id, user_id]
+        );
+        if (activity.rows.length === 0) {
+            return res.status(404).json({ message: 'Activity not found or you are not the owner' });
+        }
+
+        // Block if participants exist
+        const participants = await pool.query(
+            'SELECT id FROM tb_activity_join WHERE activity_id = $1 AND status != 2',
+            [activity_id]
+        );
+        if (participants.rows.length > 0) {
+            return res.status(400).json({ message: 'Cannot edit activity that has participants' });
+        }
+
+        const result = await pool.query(
+            `UPDATE tb_activity
+             SET title = $1, location = $2, datetime = $3, type_race = $4, description = $5
+             WHERE id = $6 RETURNING *`,
+            [title, location, datetime, parseInt(raceType, 10), description, activity_id]
+        );
+
+        res.status(200).json({ message: 'Activity updated successfully', activity: result.rows[0] });
+    } catch (err) {
+        console.error('Update activity error:', err.message);
         res.status(500).json({ message: 'Server error' });
     }
 });

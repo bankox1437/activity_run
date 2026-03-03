@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import axios from 'axios'
+import Swal from 'sweetalert2'
 
 const apiURL = import.meta.env.VITE_API_URL
 
@@ -38,7 +39,6 @@ function ActivityRequests() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [filter, setFilter] = useState('all')
-    const [confirmModal, setConfirmModal] = useState(null)
     const [updating, setUpdating] = useState(false)
 
     const token = localStorage.getItem('token')
@@ -92,12 +92,43 @@ function ActivityRequests() {
             setRequests(prev =>
                 prev.map(r => r.join_id === join_id ? { ...r, statusStr: action } : r)
             )
+            Swal.fire({
+                title: 'Success!',
+                text: `Request has been ${action}.`,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            })
         } catch (err) {
             console.error(err)
+            Swal.fire({
+                title: 'Error',
+                text: err.response?.data?.message || 'Failed to update request status',
+                icon: 'error'
+            })
         } finally {
             setUpdating(false)
-            setConfirmModal(null)
         }
+    }
+
+    const handleConfirmAction = (join_id, name, action) => {
+        const isAccept = action === 'accepted'
+        Swal.fire({
+            title: isAccept ? 'Accept Request?' : 'Reject Request?',
+            text: isAccept
+                ? `${name} will be accepted into this activity.`
+                : `${name}'s request will be rejected.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: isAccept ? '#22c55e' : '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: isAccept ? 'Yes, Accept' : 'Yes, Reject',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                updateStatus(join_id, action)
+            }
+        })
     }
 
     const filtered = filter === 'all'
@@ -224,13 +255,13 @@ function ActivityRequests() {
                             {req.statusStr === 'pending' && (
                                 <div className="flex flex-col gap-2 flex-shrink-0">
                                     <button
-                                        onClick={() => setConfirmModal({ join_id: req.join_id, name: `${req.first_name} ${req.last_name}`, action: 'accepted' })}
+                                        onClick={() => handleConfirmAction(req.join_id, `${req.first_name} ${req.last_name}`, 'accepted')}
                                         className="flex items-center gap-1 px-4 py-1.5 bg-green-500 text-white text-xs font-semibold rounded-full hover:bg-green-600 transition"
                                     >
                                         <Icon icon="mdi:check" /> Accept
                                     </button>
                                     <button
-                                        onClick={() => setConfirmModal({ join_id: req.join_id, name: `${req.first_name} ${req.last_name}`, action: 'rejected' })}
+                                        onClick={() => handleConfirmAction(req.join_id, `${req.first_name} ${req.last_name}`, 'rejected')}
                                         className="flex items-center gap-1 px-4 py-1.5 border border-red-200 text-red-500 text-xs font-medium rounded-full hover:bg-red-50 transition"
                                     >
                                         <Icon icon="mdi:close" /> Reject
@@ -242,37 +273,6 @@ function ActivityRequests() {
                 })}
             </div>
 
-            {confirmModal && (
-                <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
-                        <h3 className="font-extrabold text-gray-900 text-lg mb-1">
-                            {confirmModal.action === 'accepted' ? 'Accept Request?' : 'Reject Request?'}
-                        </h3>
-                        <p className="text-sm text-gray-500 mb-5">
-                            {confirmModal.action === 'accepted'
-                                ? `${confirmModal.name} will be accepted into this activity.`
-                                : `${confirmModal.name}'s request will be rejected.`}
-                        </p>
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setConfirmModal(null)}
-                                disabled={updating}
-                                className="flex-1 py-2.5 rounded-full border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={() => updateStatus(confirmModal.join_id, confirmModal.action)}
-                                disabled={updating}
-                                className={`flex-1 py-2.5 rounded-full text-white text-sm font-semibold transition flex items-center justify-center gap-2 ${confirmModal.action === 'accepted' ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`}
-                            >
-                                {updating && <Icon icon="mdi:loading" className="animate-spin" />}
-                                {confirmModal.action === 'accepted' ? 'Yes, Accept' : 'Yes, Reject'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     )
 }
