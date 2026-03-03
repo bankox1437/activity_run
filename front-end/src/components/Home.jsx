@@ -9,7 +9,7 @@ import { AuthContext } from '../context/AuthContext'
 
 function Home() {
   const [raceType, setRaceType] = useState('all')
-  const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString('en-CA'))
+  const [selectedDate, setSelectedDate] = useState('')
   const navigate = useNavigate()
   const { user, loading } = useContext(AuthContext)
 
