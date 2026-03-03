@@ -42,13 +42,17 @@ function Navbar() {
           <div className="hidden md:flex items-center gap-4">
             {user ? (
               <>
-                <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full">
-                  <Icon icon="mdi:account-circle" className="text-gray-500 text-lg" />
-                  <span className="text-sm font-medium text-gray-700">
-                    {user.first_name} {user.last_name}
-                  </span>
+              <button onClick={() => navigate('/myProfile')} >
+                <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full hover:bg-gray-200 cursor-pointer">
+                  
+                    <Icon icon="mdi:account-circle" className="text-gray-500 text-lg" />
+                    <span className="text-sm font-medium text-gray-700">
+                      {user.first_name} {user.last_name}
+                    </span>
+            
+                 
                 </div>
-
+              </button>
                 <div className="h-5 w-px bg-gray-200" />
 
                 <button

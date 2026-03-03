@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import axios from 'axios'
+import Swal from 'sweetalert2'
 
-import Swal from 'sweetalert2';
-import 'sweetalert2/dist/sweetalert2.min.css';
-
-
-function CreateActivity() {
-
-    const apiURL = import.meta.env.VITE_API_URL;
+function UpdateActivity() {
+    const apiURL = import.meta.env.VITE_API_URL
     const navigate = useNavigate()
+    const { id: activityId } = useParams()
 
-    // YYYY-MM-DD
-    const todayStr = new Date().toLocaleDateString('en-CA') // YYYY-MM-DD format
+    const token = localStorage.getItem('token')
+    const headers = { Authorization: `Bearer ${token}` }
+
+    const todayStr = new Date().toLocaleDateString('en-CA')
     const currentTime = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
 
     const [raceType, setRaceType] = useState('')
-    const [raceTypes, setRaceTypes] = useState([]) // Dropdown
+    const [raceTypes, setRaceTypes] = useState([])
+    const [loading, setLoading] = useState(true)
 
     const [form, setForm] = useState({
         title: '',
@@ -28,21 +28,63 @@ function CreateActivity() {
     })
 
     useEffect(() => {
-        axios.get(`${apiURL}activity/getRaceType`)
-            .then(res => setRaceTypes(res.data.data || []))
-            .catch(err => console.error('Failed to load race types', err))
-    }, [])
+        const fetchAll = async () => {
+            try {
+                const [infoRes, typesRes] = await Promise.all([
+                    axios.get(`${apiURL}activity/${activityId}/info`),
+                    axios.get(`${apiURL}activity/getRaceType`),
+                ])
+
+                const info = infoRes.data.data
+                setRaceTypes(typesRes.data.data || [])
+
+                if (info) {
+                    const createdRes = await axios.get(`${apiURL}activity/my-created`, { headers })
+                    const match = (createdRes.data.data || []).find(a => String(a.id) === String(activityId))
+
+                    if (match && Number(match.participant_count) > 0) {
+                        await Swal.fire({
+                            title: 'Cannot Edit',
+                            text: 'This activity already has participants and cannot be edited.',
+                            icon: 'warning',
+                            confirmButtonColor: '#3b82f6',
+                        })
+                        navigate(-1)
+                        return
+                    }
+
+                    const dt = new Date(info.datetime)
+                    const date = dt.toLocaleDateString('en-CA')       // YYYY-MM-DD
+                    const time = dt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) // HH:MM
+
+                    setForm({
+                        title: info.title || '',
+                        location: info.location || '',
+                        date,
+                        time,
+                        description: info.description || '',
+                    })
+                    setRaceType(String(info.type_race || ''))
+                }
+            } catch (err) {
+                console.error(err)
+                Swal.fire({ title: 'Error', text: 'Failed to load activity', icon: 'error' })
+                navigate(-1)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchAll()
+    }, [activityId])
 
     const handleChange = (e) => {
         const { name, value } = e.target
         let newForm = { ...form, [name]: value }
 
         if (name === 'date' && value === todayStr && form.time) {
-            if (form.time < currentTime) {
-                newForm.time = ''
-            }
+            if (form.time < currentTime) newForm.time = ''
         }
-
         setForm(newForm)
     }
 
@@ -52,18 +94,17 @@ function CreateActivity() {
         if (!form.date || !form.time || !form.title || !raceType || !form.description) {
             Swal.fire({
                 title: 'Please fill in all required fields',
-                text: 'Title, Date, Time and Race Type, Description are required',
+                text: 'Title, Date, Time, Race Type and Description are required',
                 icon: 'warning',
             })
             return
         }
 
-        // Check don't choose part date/time
         const selectedDatetime = new Date(`${form.date}T${form.time}`)
         if (selectedDatetime < new Date()) {
             Swal.fire({
                 title: 'Invalid date/time',
-                text: 'Cannot create an activity in the past',
+                text: 'Cannot set an activity in the past',
                 icon: 'warning',
                 confirmButtonColor: '#3b82f6',
             })
@@ -73,8 +114,8 @@ function CreateActivity() {
         const datetime = `${form.date}T${form.time}`
 
         try {
-            const res = await axios.post(
-                `${apiURL}activity/create`,
+            await axios.put(
+                `${apiURL}activity/update/${activityId}`,
                 {
                     title: form.title,
                     location: form.location,
@@ -82,33 +123,50 @@ function CreateActivity() {
                     raceType,
                     datetime,
                 },
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`,
-                        'Content-Type': 'application/json',
-                    },
-                }
+                { headers: { ...headers, 'Content-Type': 'application/json' } }
             )
 
-            console.log(res.data)
-            navigate('/')
+            await Swal.fire({
+                title: 'Updated!',
+                text: 'Activity has been updated successfully.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false,
+            })
+            navigate('/myActivity')
         } catch (err) {
             console.error(err)
             Swal.fire({
-                title: 'Failed to create activity',
-                text: err.response?.data?.message || 'Create activity failed',
+                title: 'Failed to update',
+                text: err.response?.data?.message || 'Update activity failed',
                 icon: 'error',
                 confirmButtonColor: '#3b82f6',
             })
         }
     }
 
+    if (loading) {
+        return (
+            <div className="flex justify-center py-24">
+                <Icon icon="mdi:loading" className="text-4xl text-gray-300 animate-spin" />
+            </div>
+        )
+    }
+
     return (
         <div className="min-h-screen bg-white flex items-start justify-center p-4">
-            <div className=" w-full max-w-2xl p-8">
+            <div className="w-full max-w-2xl p-8">
+
+                <button
+                    onClick={() => navigate(-1)}
+                    className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-500 transition mb-6"
+                >
+                    <Icon icon="mdi:arrow-left" />
+                    Back to My Activity
+                </button>
 
                 <h1 className="text-3xl font-extrabold text-gray-900 mb-6">
-                    Create New Run Activity
+                    Edit Activity
                 </h1>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
@@ -122,7 +180,7 @@ function CreateActivity() {
                             name="title"
                             value={form.title}
                             onChange={handleChange}
-                            placeholder="Please activity name"
+                            placeholder="Activity name"
                             className="w-full px-4 py-3 rounded-full border border-gray-200 bg-gray-50 text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
                         />
                     </div>
@@ -131,7 +189,7 @@ function CreateActivity() {
 
                         <div className="flex-1 min-w-0">
                             <label className="block text-sm font-bold text-gray-800 mb-1.5">
-                                Location <span className="text-red-500">*</span>
+                                Location
                             </label>
                             <div className="relative">
                                 <Icon
@@ -143,7 +201,7 @@ function CreateActivity() {
                                     name="location"
                                     value={form.location}
                                     onChange={handleChange}
-                                    placeholder="Please fill the location"
+                                    placeholder="Location"
                                     className="w-full pl-9 pr-4 py-2.5 rounded-full border border-gray-200 bg-gray-50 text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
                                 />
                             </div>
@@ -221,7 +279,7 @@ function CreateActivity() {
                             value={form.description}
                             onChange={handleChange}
                             rows={3}
-                            placeholder="Please fill the description"
+                            placeholder="Description"
                             className="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition resize-none"
                         />
                     </div>
@@ -238,7 +296,7 @@ function CreateActivity() {
                             type="submit"
                             className="px-6 py-2.5 rounded-full bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition shadow-sm"
                         >
-                            Create Activity
+                            Save Changes
                         </button>
                     </div>
 
@@ -248,4 +306,4 @@ function CreateActivity() {
     )
 }
 
-export default CreateActivity
+export default UpdateActivity
