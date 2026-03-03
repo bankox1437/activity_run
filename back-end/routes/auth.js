@@ -61,10 +61,10 @@ router.post('/login', async (req, res) => {
           const result = await pool.query('SELECT * FROM tb_users WHERE email = $1', [email]);
           const user = result.rows[0];
 
-          if (!user) return res.status(401).json({ message: 'Invalid credentials' });
+          if (!user) return res.status(401).json({ message: 'Invalid email or password.' });
 
           const match = await bcrypt.compare(password, user.password);
-          if (!match) return res.status(401).json({ message: 'Invalid credentials' });
+          if (!match) return res.status(401).json({ message: 'Invalid email or password.' });
 
           const token = jwt.sign(
                { id: user.user_id, email: user.email, first_name: user.first_name, last_name: user.last_name },
