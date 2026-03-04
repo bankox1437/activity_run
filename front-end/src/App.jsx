@@ -9,6 +9,7 @@ import MyActivity from './pages/MyActivity';
 import CreateActivity from './pages/CreateActivity';
 import ActivityRequests from './pages/ActivityRequests';
 import UpdateActivity from './pages/UpdateActivity';
+import ReviewActivity from './pages/ReviewActivity';
 
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider } from './context/AuthContext'
@@ -30,6 +31,7 @@ function App() {
               <Route path="/createActivity" element={<ProtectedRoute><CreateActivity /></ProtectedRoute>} />
               <Route path="/activity/:id/requests" element={<ProtectedRoute><ActivityRequests /></ProtectedRoute>} />
               <Route path="/activity/:id/update" element={<ProtectedRoute><UpdateActivity /></ProtectedRoute>} />
+              <Route path="/activity/:id/review" element={<ProtectedRoute><ReviewActivity /></ProtectedRoute>} />
               <Route path="/myProfile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             </Routes>
           </div>

@@ -375,4 +375,113 @@ router.put('/update/:activity_id', auth, async (req, res) => {
     }
 });
 
+router.get('/:activity_id/participants', async (req, res) => {
+    const { activity_id } = req.params;
+    try {
+        const result = await pool.query(
+            `SELECT u.user_id, u.first_name, u.last_name
+             FROM tb_activity_join j
+             LEFT JOIN tb_users u ON u.user_id = j.user_id
+             WHERE j.activity_id = $1 AND j.status = 1
+             ORDER BY j.id ASC`,
+            [activity_id]
+        );
+        res.status(200).json({ data: result.rows });
+    } catch (err) {
+        console.error('participants error:', err.message);
+        res.status(500).json({ message: 'Failed to fetch participants' });
+    }
+});
+
+router.post('/:activity_id/review', auth, async (req, res) => {
+    const { activity_id } = req.params;
+    const user_id = req.user.id;
+    const { rating, comment } = req.body;
+
+    if (!rating || rating < 1 || rating > 5) {
+        return res.status(400).json({ message: 'Rating must be between 1 and 5' });
+    }
+
+    try {
+        // Check activity exists and is in the past
+        const activityRes = await pool.query(
+            'SELECT id, datetime, user_id FROM tb_activity WHERE id = $1',
+            [activity_id]
+        );
+        if (activityRes.rows.length === 0) {
+            return res.status(404).json({ message: 'Activity not found' });
+        }
+        const activity = activityRes.rows[0];
+
+        if (new Date(activity.datetime) > new Date()) {
+            return res.status(400).json({ message: 'Cannot review an activity that has not ended yet' });
+        }
+
+        // Cannot review own activity
+        if (activity.user_id === user_id) {
+            return res.status(403).json({ message: 'You cannot review your own activity' });
+        }
+
+        // Check user was an accepted participant
+        const joinRes = await pool.query(
+            'SELECT id FROM tb_activity_join WHERE activity_id = $1 AND user_id = $2 AND status = 1',
+            [activity_id, user_id]
+        );
+        if (joinRes.rows.length === 0) {
+            return res.status(403).json({ message: 'Only accepted participants can review this activity' });
+        }
+
+        const result = await pool.query(
+            `INSERT INTO tb_review (activity_id, reviewer_id, rating, comment)
+             VALUES ($1, $2, $3, $4)
+             ON CONFLICT (activity_id, reviewer_id)
+             DO UPDATE SET rating = $3, comment = $4, created_at = NOW()
+             RETURNING *`,
+            [activity_id, user_id, parseInt(rating), comment || '']
+        );
+        res.status(201).json({ review: result.rows[0] });
+    } catch (err) {
+        console.error('Review error:', err.message);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+router.get('/:activity_id/reviews', async (req, res) => {
+    const { activity_id } = req.params;
+    try {
+        const result = await pool.query(
+            `SELECT r.id, r.rating, r.comment, r.created_at,
+                    u.first_name, u.last_name
+             FROM tb_review r
+             LEFT JOIN tb_users u ON u.user_id = r.reviewer_id
+             WHERE r.activity_id = $1
+             ORDER BY r.created_at DESC`,
+            [activity_id]
+        );
+        const reviews = result.rows;
+        const average = reviews.length > 0
+            ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+            : null;
+        res.status(200).json({ average: average ? parseFloat(average) : null, count: reviews.length, reviews });
+    } catch (err) {
+        console.error('Reviews error:', err.message);
+        res.status(500).json({ message: 'Failed to fetch reviews' });
+    }
+});
+
+router.get('/:activity_id/my-review', auth, async (req, res) => {
+    const { activity_id } = req.params;
+    const user_id = req.user.id;
+    try {
+        const result = await pool.query(
+            'SELECT id, rating, comment FROM tb_review WHERE activity_id = $1 AND reviewer_id = $2',
+            [activity_id, user_id]
+        );
+        res.status(200).json({ review: result.rows[0] || null });
+    } catch (err) {
+        console.error('my-review error:', err.message);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 module.exports = router;
