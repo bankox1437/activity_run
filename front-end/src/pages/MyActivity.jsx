@@ -108,9 +108,12 @@ function CreatedCard({ activity, onRemove }) {
 }
 
 function JoinedCard({ activity, onCancel }) {
+  const navigate = useNavigate()
   const statusKey = Number(activity.status)
   const cfg = statusConfig[statusKey] ?? statusConfig[0]
   const organizer = `${activity.organizer_first ?? ''} ${activity.organizer_last ?? ''}`.trim() || '-'
+  const isPast = new Date(activity.datetime) < new Date()
+  const canRate = isPast && statusKey === 1
 
   return (
     <div className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col">
@@ -161,6 +164,16 @@ function JoinedCard({ activity, onCancel }) {
           >
             <Icon icon="mdi:close-circle-outline" className="text-base" />
             Cancel Request
+          </button>
+        )}
+
+        {canRate && (
+          <button
+            onClick={() => navigate(`/activity/${activity.activity_id}/review`)}
+            className="w-full py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 text-sm font-semibold hover:bg-amber-100 transition flex items-center justify-center gap-1.5"
+          >
+            <Icon icon="mdi:star-outline" className="text-base" />
+            Rate Activity
           </button>
         )}
 

@@ -4,6 +4,7 @@ import Swal from 'sweetalert2'
 import { Icon } from '@iconify/react'
 import { AuthContext } from '../context/AuthContext'
 import JoinModal from './JoinModal'
+import ParticipantsModal from './ParticipantsModal'
 import defaultCardImg from '../assets/cards_img/card_run.jpg'
 
 const apiURL = import.meta.env.VITE_API_URL
@@ -30,6 +31,7 @@ function CardActivity({ raceType, selectedDate }) {
     const [error, setError] = useState(null)
     const [joinTarget, setJoinTarget] = useState(null)
     const [descriptionTarget, setDescriptionTarget] = useState(null)
+    const [participantsTarget, setParticipantsTarget] = useState(null)
     const [joinedMap, setJoinedMap] = useState({}) // keep status 0,1,2
 
     const fetchJoined = () => {
@@ -110,6 +112,17 @@ function CardActivity({ raceType, selectedDate }) {
                 <DescriptionModal
                     activity={descriptionTarget}
                     onClose={() => setDescriptionTarget(null)}
+                    onViewParticipants={(a) => {
+                        setDescriptionTarget(null)
+                        setParticipantsTarget(a)
+                    }}
+                />
+            )}
+
+            {participantsTarget && (
+                <ParticipantsModal
+                    activity={participantsTarget}
+                    onClose={() => setParticipantsTarget(null)}
                 />
             )}
 
@@ -198,7 +211,7 @@ function CardActivity({ raceType, selectedDate }) {
     )
 }
 
-function DescriptionModal({ activity, onClose }) {
+function DescriptionModal({ activity, onClose, onViewParticipants }) {
     const handleBackdrop = (e) => {
         if (e.target === e.currentTarget) onClose()
     }
@@ -217,12 +230,22 @@ function DescriptionModal({ activity, onClose }) {
                         <Icon icon="mdi:close" className="text-base" />
                     </button>
                 </div>
-                <div className="px-5 pb-6">
+                <div className="px-5 pb-2">
                     {activity.description ? (
                         <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{activity.description}</p>
                     ) : (
                         <p className="text-sm text-gray-400 italic">No description provided.</p>
                     )}
+                </div>
+                {/* Participants button */}
+                <div className="px-5 pb-5 pt-3 border-t border-gray-100 mt-3">
+                    <button
+                        onClick={() => onViewParticipants && onViewParticipants(activity)}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-blue-200 text-blue-500 text-sm font-semibold hover:bg-blue-50 transition"
+                    >
+                        <Icon icon="mdi:account-group-outline" className="text-lg" />
+                        View Participants
+                    </button>
                 </div>
             </div>
         </div>
