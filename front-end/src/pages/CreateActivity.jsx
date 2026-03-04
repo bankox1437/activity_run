@@ -12,9 +12,9 @@ function CreateActivity() {
     const apiURL = import.meta.env.VITE_API_URL;
     const navigate = useNavigate()
 
-    // YYYY-MM-DD
-    const todayStr = new Date().toLocaleDateString('en-CA') // YYYY-MM-DD format
-    const currentTime = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+    // YYYY-MM-DD in Asia/Bangkok
+    const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Bangkok' })
+    const currentTime = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' })
 
     const [raceType, setRaceType] = useState('')
     const [raceTypes, setRaceTypes] = useState([]) // Dropdown
@@ -59,7 +59,7 @@ function CreateActivity() {
         }
 
         // Check don't choose part date/time
-        const selectedDatetime = new Date(`${form.date}T${form.time}`)
+        const selectedDatetime = new Date(`${form.date}T${form.time}:00+07:00`)
         if (selectedDatetime < new Date()) {
             Swal.fire({
                 title: 'Invalid date/time',

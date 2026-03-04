@@ -12,8 +12,8 @@ function UpdateActivity() {
     const token = localStorage.getItem('token')
     const headers = { Authorization: `Bearer ${token}` }
 
-    const todayStr = new Date().toLocaleDateString('en-CA')
-    const currentTime = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+    const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Bangkok' })
+    const currentTime = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' })
 
     const [raceType, setRaceType] = useState('')
     const [raceTypes, setRaceTypes] = useState([])
@@ -54,8 +54,8 @@ function UpdateActivity() {
                     }
 
                     const dt = new Date(info.datetime)
-                    const date = dt.toLocaleDateString('en-CA')       // YYYY-MM-DD
-                    const time = dt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) // HH:MM
+                    const date = dt.toLocaleDateString('en-CA', { timeZone: 'Asia/Bangkok' })       // YYYY-MM-DD
+                    const time = dt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' }) // HH:MM
 
                     setForm({
                         title: info.title || '',
@@ -100,7 +100,7 @@ function UpdateActivity() {
             return
         }
 
-        const selectedDatetime = new Date(`${form.date}T${form.time}`)
+        const selectedDatetime = new Date(`${form.date}T${form.time}:00+07:00`)
         if (selectedDatetime < new Date()) {
             Swal.fire({
                 title: 'Invalid date/time',

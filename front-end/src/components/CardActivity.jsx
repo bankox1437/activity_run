@@ -13,12 +13,16 @@ function formatDate(datetime) {
     if (!datetime) return '-'
     return new Date(datetime).toLocaleDateString('en-GB', {
         day: 'numeric', month: 'short', year: 'numeric',
+        timeZone: 'Asia/Bangkok',
     })
 }
 
 function formatTime(datetime) {
     if (!datetime) return '-'
-    return new Date(datetime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+    return new Date(datetime).toLocaleTimeString('en-GB', {
+        hour: '2-digit', minute: '2-digit',
+        timeZone: 'Asia/Bangkok',
+    })
 }
 
 
@@ -76,7 +80,7 @@ function CardActivity({ raceType, selectedDate }) {
 
     const filtered = activities.filter((a) => {
         const matchType = raceType === 'all' || a.type_race_name === raceType
-        const activityDate = a.datetime ? a.datetime.split('T')[0] : ''
+        const activityDate = a.datetime ? new Date(a.datetime).toLocaleDateString('en-CA', { timeZone: 'Asia/Bangkok' }) : ''
         const matchDate = !selectedDate || activityDate === selectedDate
         return matchType && matchDate
     })
@@ -173,12 +177,12 @@ function CardActivity({ raceType, selectedDate }) {
                                             </span>
                                         ) : joinedMap[activity.id] === 0 ? (
                                             <span className="mt-1 w-full py-2 bg-yellow-300 text-white text-xs font-semibold rounded-full text-center flex items-center justify-center gap-1">
-                                           
+
                                                 Processing...
                                             </span>
                                         ) : joinedMap[activity.id] === 1 ? (
                                             <span className="mt-1 w-full py-2 bg-green-500 text-white text-xs font-semibold rounded-full text-center flex items-center justify-center gap-1">
-                                                
+
                                                 Accepted
                                             </span>
                                         ) : (
