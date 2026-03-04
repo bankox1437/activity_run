@@ -128,6 +128,7 @@ router.get('/all', async (req, res) => {
             `SELECT a.*, rt.race_type_name AS type_race_name
              FROM tb_activity a
              LEFT JOIN tb_race_type rt ON rt.race_type_id = a.type_race
+             WHERE a.datetime > NOW()
              ORDER BY a.datetime DESC`
         );
         res.status(200).json({ data: result.rows });
