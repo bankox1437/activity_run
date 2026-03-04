@@ -17,12 +17,16 @@ function formatDate(datetime) {
   if (!datetime) return '-'
   return new Date(datetime).toLocaleDateString('en-GB', {
     day: 'numeric', month: 'short', year: 'numeric',
+    timeZone: 'Asia/Bangkok',
   })
 }
 
 function formatTime(datetime) {
   if (!datetime) return '-'
-  return new Date(datetime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+  return new Date(datetime).toLocaleTimeString('en-GB', {
+    hour: '2-digit', minute: '2-digit',
+    timeZone: 'Asia/Bangkok',
+  })
 }
 
 function CreatedCard({ activity, onRemove }) {
