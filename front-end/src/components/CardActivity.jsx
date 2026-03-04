@@ -31,7 +31,6 @@ function CardActivity({ raceType, selectedDate }) {
     const [error, setError] = useState(null)
     const [joinTarget, setJoinTarget] = useState(null)
     const [descriptionTarget, setDescriptionTarget] = useState(null)
-    const [participantsTarget, setParticipantsTarget] = useState(null)
     const [joinedMap, setJoinedMap] = useState({}) // keep status 0,1,2
 
     const fetchJoined = () => {
@@ -112,17 +111,6 @@ function CardActivity({ raceType, selectedDate }) {
                 <DescriptionModal
                     activity={descriptionTarget}
                     onClose={() => setDescriptionTarget(null)}
-                    onViewParticipants={(a) => {
-                        setDescriptionTarget(null)
-                        setParticipantsTarget(a)
-                    }}
-                />
-            )}
-
-            {participantsTarget && (
-                <ParticipantsModal
-                    activity={participantsTarget}
-                    onClose={() => setParticipantsTarget(null)}
                 />
             )}
 
@@ -185,12 +173,12 @@ function CardActivity({ raceType, selectedDate }) {
                                             </span>
                                         ) : joinedMap[activity.id] === 0 ? (
                                             <span className="mt-1 w-full py-2 bg-yellow-300 text-white text-xs font-semibold rounded-full text-center flex items-center justify-center gap-1">
-                                                <Icon icon="mdi:clock-outline" className="text-sm" />
+                                           
                                                 Processing...
                                             </span>
                                         ) : joinedMap[activity.id] === 1 ? (
                                             <span className="mt-1 w-full py-2 bg-green-500 text-white text-xs font-semibold rounded-full text-center flex items-center justify-center gap-1">
-                                                <Icon icon="mdi:check-circle-outline" className="text-sm" />
+                                                
                                                 Accepted
                                             </span>
                                         ) : (
@@ -211,7 +199,7 @@ function CardActivity({ raceType, selectedDate }) {
     )
 }
 
-function DescriptionModal({ activity, onClose, onViewParticipants }) {
+function DescriptionModal({ activity, onClose }) {
     const handleBackdrop = (e) => {
         if (e.target === e.currentTarget) onClose()
     }
@@ -236,16 +224,6 @@ function DescriptionModal({ activity, onClose, onViewParticipants }) {
                     ) : (
                         <p className="text-sm text-gray-400 italic">No description provided.</p>
                     )}
-                </div>
-                {/* Participants button */}
-                <div className="px-5 pb-5 pt-3 border-t border-gray-100 mt-3">
-                    <button
-                        onClick={() => onViewParticipants && onViewParticipants(activity)}
-                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-blue-200 text-blue-500 text-sm font-semibold hover:bg-blue-50 transition"
-                    >
-                        <Icon icon="mdi:account-group-outline" className="text-lg" />
-                        View Participants
-                    </button>
                 </div>
             </div>
         </div>
