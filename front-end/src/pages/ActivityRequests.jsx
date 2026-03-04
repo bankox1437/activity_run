@@ -330,8 +330,7 @@ function ActivityRequests() {
                 <div className="flex flex-col gap-3">
                     {reviews.count === 0 ? (
                         <div className="flex flex-col items-center py-16 text-gray-300">
-                            <Icon icon="mdi:star-outline" className="text-6xl mb-2" />
-                            <p className="text-sm text-gray-400">No reviews yet.</p>
+                            <p className="text-sm text-gray-400">No reviews yet</p>
                         </div>
                     ) : (
                         <>
