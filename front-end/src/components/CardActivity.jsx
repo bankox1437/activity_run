@@ -135,11 +135,6 @@ function CardActivity({ raceType, selectedDate }) {
                                 <span className="absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full bg-black/40 text-white">
                                     {activity.type_race_name || '-'}
                                 </span>
-                                {isPast && (
-                                    <span className="absolute top-3 right-3 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-700/80 text-white">
-                                        Expired
-                                    </span>
-                                )}
                             </div>
 
                             <div className="p-4 flex flex-col gap-2">
@@ -166,11 +161,7 @@ function CardActivity({ raceType, selectedDate }) {
                                         className="mt-1 mx-1 w-full py-2 bg-gray-400 hover:bg-gray-500 text-white text-xs font-semibold rounded-full cursor-pointer transition">
                                         View
                                     </button>
-                                    {isPast ? (
-                                        <span className="mt-1 w-full py-2 bg-gray-200 text-gray-400 text-xs font-semibold rounded-full text-center block">
-                                            Expired
-                                        </span>
-                                    ) : user && (
+                                    {user && (
                                         user.id === activity.user_id ? (
                                             <span className="mt-1 w-full py-2 bg-gray-300 text-white text-xs font-semibold rounded-full text-center block">
                                                 Your Activity
