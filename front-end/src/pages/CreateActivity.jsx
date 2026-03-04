@@ -70,7 +70,7 @@ function CreateActivity() {
             return
         }
 
-        const datetime = `${form.date}T${form.time}:00+07:00`
+        const datetime = selectedDatetime.toISOString()
 
         try {
             const res = await axios.post(
