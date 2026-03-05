@@ -14,6 +14,7 @@ import ReviewActivity from './pages/ReviewActivity';
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider } from './context/AuthContext'
 import Profile from './pages/Profile';
+import NotFound from './pages/NotFound';
 
 function App() {
 
@@ -33,6 +34,7 @@ function App() {
               <Route path="/activity/:id/update" element={<ProtectedRoute><UpdateActivity /></ProtectedRoute>} />
               <Route path="/activity/:id/review" element={<ProtectedRoute><ReviewActivity /></ProtectedRoute>} />
               <Route path="/myProfile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
         </div>

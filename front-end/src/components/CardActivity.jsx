@@ -137,9 +137,16 @@ function CardActivity({ raceType, selectedDate }) {
                             </div>
 
                             <div className="p-4 flex flex-col gap-2">
-                                <h2 className="font-bold text-gray-900 text-sm leading-snug line-clamp-1">
-                                    {activity.title}
-                                </h2>
+                                <div className="flex items-start justify-between gap-2 border-b border-gray-100 pb-2">
+                                    <h2 className="font-bold text-gray-900 text-sm leading-snug line-clamp-1">
+                                        {activity.title}
+                                    </h2>
+                                    <button onClick={() => setDescriptionTarget(activity)}
+                                        title="View description"
+                                        className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 hover:bg-blue-100 text-gray-400 hover:text-blue-500 transition cursor-pointer">
+                                        <Icon icon="mdi:text-box-outline" className="text-sm" />
+                                    </button>
+                                </div>
 
                                 <div className="flex flex-col gap-1 text-xs text-gray-500">
                                     <span className="flex items-center gap-1">
@@ -155,32 +162,36 @@ function CardActivity({ raceType, selectedDate }) {
                                         {formatTime(activity.datetime)}
                                     </span>
                                 </div>
-                                <div className="flex flex-rows">
-                                    <button onClick={() => setDescriptionTarget(activity)}
-                                        className="mt-1 mx-1 w-full py-2 bg-gray-400 hover:bg-gray-500 text-white text-xs font-semibold rounded-full cursor-pointer transition">
-                                        View
-                                    </button>
-                                    {user && (
+                                <div className="flex items-center gap-2 mt-2">
+                                    {/* Action / Status button — full width */}
+                                    {user ? (
                                         user.id === activity.user_id ? (
-                                            <span className="mt-1 w-full py-2 bg-gray-300 text-white text-xs font-semibold rounded-full text-center block">
+                                            <span className="flex-1 py-2 bg-gray-100 text-gray-500 text-xs font-semibold rounded-full text-center flex items-center justify-center gap-1">
                                                 Your Activity
                                             </span>
                                         ) : joinedMap[activity.id] === 0 ? (
-                                            <span className="mt-1 w-full py-2 bg-yellow-300 text-white text-xs font-semibold rounded-full text-center flex items-center justify-center gap-1">
-
-                                                Processing...
+                                            <span className="flex-1 py-2 bg-amber-50 border border-amber-200 text-amber-600 text-xs font-semibold rounded-full text-center flex items-center justify-center gap-1">
+                                                <Icon icon="mdi:clock-outline" className="text-sm" />
+                                                Processing…
                                             </span>
                                         ) : joinedMap[activity.id] === 1 ? (
-                                            <span className="mt-1 w-full py-2 bg-green-500 text-white text-xs font-semibold rounded-full text-center flex items-center justify-center gap-1">
-
+                                            <span className="flex-1 py-2 bg-green-50 border border-green-200 text-green-600 text-xs font-semibold rounded-full text-center flex items-center justify-center gap-1">
+                                                <Icon icon="mdi:check-circle-outline" className="text-sm" />
                                                 Accepted
                                             </span>
                                         ) : (
                                             <button onClick={() => setJoinTarget(activity)}
-                                                className="mt-1 w-full py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded-full cursor-pointer transition">
+                                                className="flex-1 py-2 bg-blue-500 hover:bg-blue-600 active:scale-95 text-white text-xs font-bold rounded-full cursor-pointer transition-all flex items-center justify-center gap-1 shadow-sm shadow-blue-200">
+                                                <Icon icon="mdi:run-fast" className="text-sm" />
                                                 Join Run
                                             </button>
                                         )
+                                    ) : (
+                                        <button onClick={() => setJoinTarget(activity)}
+                                            className="flex-1 py-2 bg-blue-500 hover:bg-blue-600 active:scale-95 text-white text-xs font-bold rounded-full cursor-pointer transition-all flex items-center justify-center gap-1 shadow-sm shadow-blue-200">
+                                            <Icon icon="mdi:run-fast" className="text-sm" />
+                                            Join Run
+                                        </button>
                                     )}
                                 </div>
 
@@ -204,7 +215,7 @@ function DescriptionModal({ activity, onClose }) {
         >
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden">
                 <div className="flex items-center justify-between px-5 pt-5 pb-3">
-                    <h3 className="font-bold text-gray-900 text-base">Description</h3>
+                    <h3 className="font-bold text-gray-900 text-base border-b border-gray-100 pb-2">Description</h3>
                     <button
                         onClick={onClose}
                         className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition"
@@ -212,11 +223,11 @@ function DescriptionModal({ activity, onClose }) {
                         <Icon icon="mdi:close" className="text-base" />
                     </button>
                 </div>
-                <div className="px-5 pb-2">
+                <div className="px-5 pb-5">
                     {activity.description ? (
                         <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{activity.description}</p>
                     ) : (
-                        <p className="text-sm text-gray-400 italic">No description provided.</p>
+                        <p className="text-sm text-gray-400 italic">No description</p>
                     )}
                 </div>
             </div>
