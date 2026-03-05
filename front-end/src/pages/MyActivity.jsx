@@ -35,19 +35,22 @@ function CreatedCard({ activity, onRemove }) {
 
   return (
     <div className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col">
-      <div className="relative h-32 overflow-hidden bg-gray-100 shrink-0">
+      <div className="relative h-40 overflow-hidden bg-gray-100 shrink-0 border-b border-gray-50">
         <img
           src={activity.image || defaultCardImg}
           alt={activity.title}
           className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
         />
-        <span className="absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-black/40 text-white">
+        <span className="absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-black/40 text-white shadow-sm">
           {activity.type_race_name ?? '-'}
         </span>
       </div>
-      <div className="p-5 flex flex-col gap-4 flex-1">
+      <div className="p-4 flex flex-col gap-3 flex-1">
+        <h3 className="font-bold text-gray-900 text-sm leading-snug line-clamp-1 border-b border-gray-100 pb-2">
+          {activity.title}
+        </h3>
 
-        <div className="flex flex-col gap-2 text-sm text-gray-500">
+        <div className="flex flex-col gap-2 text-xs text-gray-500">
           <span className="flex items-center gap-2">
             <Icon icon="mdi:map-marker-outline" className="text-blue-400 shrink-0 text-base" />
             <span className="truncate">{activity.location || '-'}</span>
@@ -75,7 +78,7 @@ function CreatedCard({ activity, onRemove }) {
         <div className="grid grid-cols-2 gap-2 mt-auto">
           <button
             onClick={() => navigate(`/activity/${activity.id}/requests`)}
-            className="flex-1 py-2 rounded-xl bg-blue-500 text-white text-xs font-semibold hover:bg-blue-600 transition flex items-center justify-center gap-1.5"
+            className="flex-1 py-2 rounded-xl bg-blue-500 text-white text-xs font-semibold hover:bg-blue-600 transition flex items-center justify-center gap-1.5 cursor-pointers"
           >
             <Icon icon="mdi:account-check-outline" className="text-base" />
             Manage
@@ -94,13 +97,13 @@ function CreatedCard({ activity, onRemove }) {
                 }
                 navigate(`/activity/${activity.id}/update`)
               }}
-              className="flex-1 py-2 mx-2 rounded-xl border border-yellow-200 text-yellow-500 text-xs font-semibold hover:bg-yellow-50 transition flex items-center justify-center gap-1.5"
+              className="flex-1 py-2 mx-2 rounded-xl border border-yellow-200 text-yellow-500 text-xs font-semibold hover:bg-yellow-50 transition flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Icon icon="mdi:edit-outline" className="text-base" />
             </button>
             <button
               onClick={() => onRemove(activity)}
-              className="flex-1 py-2 rounded-xl border border-red-100 text-red-500 text-xs font-semibold hover:bg-red-50 transition flex items-center justify-center gap-1.5"
+              className="flex-1 py-2 rounded-xl border border-red-100 text-red-500 text-xs font-semibold hover:bg-red-50 transition flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Icon icon="mdi:trash-can-outline" className="text-base" />
             </button>
@@ -123,22 +126,25 @@ function JoinedCard({ activity, onCancel }) {
 
   return (
     <div className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col">
-      <div className="relative h-32 overflow-hidden bg-gray-100 shrink-0">
+      <div className="relative h-40 overflow-hidden bg-gray-100 shrink-0 border-b border-gray-50">
         <img
           src={activity.image || defaultCardImg}
           alt={activity.title}
           className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
         />
-        <span className="absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-black/40 text-white">
+        <span className="absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-black/40 text-white shadow-sm">
           {activity.type_race_name ?? '-'}
         </span>
-        <span className={`absolute top-2 right-2 flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full border ${cfg.cls}`}>
+        <span className={`absolute top-2 right-2 flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full border shadow-sm ${cfg.cls}`}>
           {cfg.label}
         </span>
       </div>
-      <div className="p-5 flex flex-col gap-4 flex-1">
+      <div className="p-4 flex flex-col gap-3 flex-1">
+        <h3 className="font-bold text-gray-900 text-sm leading-snug line-clamp-1 border-b border-gray-100 pb-2">
+          {activity.title}
+        </h3>
 
-        <div className="flex flex-col gap-2 text-sm text-gray-500">
+        <div className="flex flex-col gap-2 text-xs text-gray-500">
           <span className="flex items-center gap-2">
             <Icon icon="mdi:map-marker-outline" className="text-blue-400 shrink-0 text-base" />
             <span className="truncate">{activity.location || '-'}</span>
@@ -270,7 +276,7 @@ function MyActivity() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-50 p-4 max-w-6xl mx-auto">
 
       <div className="flex items-center justify-between mb-6 pt-2">
         <h1 className="text-2xl font-extrabold text-gray-900">My Activity</h1>
@@ -314,7 +320,7 @@ function MyActivity() {
           {activeTab === 'created' && (
             created.length === 0
               ? <EmptyState message="You haven't created any activities yet." />
-              : <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              : <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {created.map((a) => <CreatedCard key={a.id} activity={a} onRemove={handleDeleteActivity} />)}
               </div>
           )}
@@ -322,7 +328,7 @@ function MyActivity() {
           {activeTab === 'joined' && (
             joined.length === 0
               ? <EmptyState message="You haven't joined any activities yet." />
-              : <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              : <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {joined.map((a) => (
                   <JoinedCard key={a.join_id} activity={a} onCancel={() => handleCancelJoin(a)} />
                 ))}
