@@ -4,7 +4,6 @@ import Swal from 'sweetalert2'
 import { Icon } from '@iconify/react'
 import { AuthContext } from '../context/AuthContext'
 import JoinModal from './JoinModal'
-import ParticipantsModal from './ParticipantsModal'
 import defaultCardImg from '../assets/cards_img/card_run.jpg'
 
 const apiURL = import.meta.env.VITE_API_URL
@@ -128,7 +127,7 @@ function CardActivity({ raceType, selectedDate }) {
                         >
                             <div className="relative overflow-hidden bg-gray-100 h-40">
                                 <img
-                                    src={defaultCardImg}
+                                    src={activity.image || defaultCardImg}
                                     alt={activity.title}
                                     className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                                 />
