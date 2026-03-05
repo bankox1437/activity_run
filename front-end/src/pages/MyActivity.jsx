@@ -4,6 +4,7 @@ import { Icon } from '@iconify/react'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 import { AuthContext } from '../context/AuthContext'
+import defaultCardImg from '../assets/cards_img/card_run.jpg'
 
 const apiURL = import.meta.env.VITE_API_URL
 
@@ -34,16 +35,17 @@ function CreatedCard({ activity, onRemove }) {
 
   return (
     <div className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col">
+      <div className="relative h-32 overflow-hidden bg-gray-100 shrink-0">
+        <img
+          src={activity.image || defaultCardImg}
+          alt={activity.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+        />
+        <span className="absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-black/40 text-white">
+          {activity.type_race_name ?? '-'}
+        </span>
+      </div>
       <div className="p-5 flex flex-col gap-4 flex-1">
-
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-gray-900 text-base leading-snug truncate">{activity.title}</h3>
-          </div>
-          <span className="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
-            {activity.type_race_name ?? '-'}
-          </span>
-        </div>
 
         <div className="flex flex-col gap-2 text-sm text-gray-500">
           <span className="flex items-center gap-2">
@@ -121,16 +123,20 @@ function JoinedCard({ activity, onCancel }) {
 
   return (
     <div className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col">
+      <div className="relative h-32 overflow-hidden bg-gray-100 shrink-0">
+        <img
+          src={activity.image || defaultCardImg}
+          alt={activity.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+        />
+        <span className="absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-black/40 text-white">
+          {activity.type_race_name ?? '-'}
+        </span>
+        <span className={`absolute top-2 right-2 flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full border ${cfg.cls}`}>
+          {cfg.label}
+        </span>
+      </div>
       <div className="p-5 flex flex-col gap-4 flex-1">
-
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-gray-900 text-base leading-snug truncate">{activity.title}</h3>
-          </div>
-          <span className={`flex items-center text-xs font-semibold px-2.5 py-1 rounded-full border ${cfg.cls}`}>
-            {cfg.label}
-          </span>
-        </div>
 
         <div className="flex flex-col gap-2 text-sm text-gray-500">
           <span className="flex items-center gap-2">

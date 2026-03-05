@@ -42,7 +42,7 @@ router.put('/updateProfile', auth, async (req, res) => {
 })
 
 router.post('/create', auth, async (req, res) => {
-    const { title, location, datetime, raceType, description } = req.body;
+    const { title, location, datetime, raceType, description, imageUrl } = req.body;
     const user_id = req.user.id;
 
     try {
@@ -55,9 +55,9 @@ router.post('/create', auth, async (req, res) => {
         }
 
         const result = await pool.query(
-            `INSERT INTO tb_activity (title, location, datetime, type_race, description, user_id)
-             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-            [title, location, datetime, raceType, description, user_id]
+            `INSERT INTO tb_activity (title, location, datetime, type_race, description, user_id, image)
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+            [title, location, datetime, raceType, description, user_id, imageUrl || null]
         );
         res.status(201).json({ activity: result.rows[0] });
     } catch (err) {
@@ -195,7 +195,7 @@ router.get('/:activity_id/info', async (req, res) => {
     const { activity_id } = req.params;
     try {
         const result = await pool.query(
-            `SELECT a.id, a.title, a.location, a.datetime, a.description, a.type_race,
+            `SELECT a.id, a.title, a.location, a.datetime, a.description, a.type_race, a.image,
              rt.race_type_name AS type_race_name
              FROM tb_activity a
              LEFT JOIN tb_race_type rt ON rt.race_type_id = a.type_race
@@ -341,12 +341,12 @@ router.delete('/:activity_id', auth, async (req, res) => {
 router.put('/update/:activity_id', auth, async (req, res) => {
     const { activity_id } = req.params;
     const user_id = req.user.id;
-    const { title, location, datetime, raceType, description } = req.body;
+    const { title, location, datetime, raceType, description, imageUrl } = req.body;
 
     try {
         // Check ownership
         const activity = await pool.query(
-            'SELECT id FROM tb_activity WHERE id = $1 AND user_id = $2',
+            'SELECT id, image FROM tb_activity WHERE id = $1 AND user_id = $2',
             [activity_id, user_id]
         );
         if (activity.rows.length === 0) {
@@ -362,11 +362,14 @@ router.put('/update/:activity_id', auth, async (req, res) => {
             return res.status(400).json({ message: 'Cannot edit activity that has participants' });
         }
 
+        // Use new imageUrl if provided, otherwise keep existing
+        const finalImage = imageUrl !== undefined ? (imageUrl || null) : activity.rows[0].image;
+
         const result = await pool.query(
             `UPDATE tb_activity
-             SET title = $1, location = $2, datetime = $3, type_race = $4, description = $5
-             WHERE id = $6 RETURNING *`,
-            [title, location, datetime, parseInt(raceType, 10), description, activity_id]
+             SET title = $1, location = $2, datetime = $3, type_race = $4, description = $5, image = $6
+             WHERE id = $7 RETURNING *`,
+            [title, location, datetime, parseInt(raceType, 10), description, finalImage, activity_id]
         );
 
         res.status(200).json({ message: 'Activity updated successfully', activity: result.rows[0] });
