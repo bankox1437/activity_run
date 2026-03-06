@@ -42,8 +42,16 @@ router.put('/updateProfile', auth, async (req, res) => {
 })
 
 router.post('/create', auth, async (req, res) => {
-    const { title, location, datetime, raceType, description, imageUrl } = req.body;
+    const { title, location, latitude, longitude, datetime, raceType, description, imageUrl } = req.body;
     const user_id = req.user.id;
+
+    // Validate coordinates
+    if (latitude !== null && (isNaN(latitude) || latitude < -90 || latitude > 90)) {
+        return res.status(400).json({ message: 'Invalid latitude' });
+    }
+    if (longitude !== null && (isNaN(longitude) || longitude < -180 || longitude > 180)) {
+        return res.status(400).json({ message: 'Invalid longitude' });
+    }
 
     try {
         const duplicate = await pool.query(
@@ -55,9 +63,9 @@ router.post('/create', auth, async (req, res) => {
         }
 
         const result = await pool.query(
-            `INSERT INTO tb_activity (title, location, datetime, type_race, description, user_id, image)
-             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-            [title, location, datetime, raceType, description, user_id, imageUrl || null]
+            `INSERT INTO tb_activity (title, location, latitude, longitude, datetime, type_race, description, user_id, image)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+            [title, location, latitude, longitude, datetime, raceType, description, user_id, imageUrl || null]
         );
         res.status(201).json({ activity: result.rows[0] });
     } catch (err) {
@@ -195,7 +203,7 @@ router.get('/:activity_id/info', async (req, res) => {
     const { activity_id } = req.params;
     try {
         const result = await pool.query(
-            `SELECT a.id, a.title, a.location, a.datetime, a.description, a.type_race, a.image,
+            `SELECT a.id, a.title, a.location, a.latitude, a.longitude, a.datetime, a.description, a.type_race, a.image,
              rt.race_type_name AS type_race_name
              FROM tb_activity a
              LEFT JOIN tb_race_type rt ON rt.race_type_id = a.type_race
@@ -341,7 +349,15 @@ router.delete('/:activity_id', auth, async (req, res) => {
 router.put('/update/:activity_id', auth, async (req, res) => {
     const { activity_id } = req.params;
     const user_id = req.user.id;
-    const { title, location, datetime, raceType, description, imageUrl } = req.body;
+    const { title, location, latitude, longitude, datetime, raceType, description, imageUrl } = req.body;
+
+    // Validate coordinates
+    if (latitude !== null && latitude !== undefined && (isNaN(latitude) || latitude < -90 || latitude > 90)) {
+        return res.status(400).json({ message: 'Invalid latitude' });
+    }
+    if (longitude !== null && longitude !== undefined && (isNaN(longitude) || longitude < -180 || longitude > 180)) {
+        return res.status(400).json({ message: 'Invalid longitude' });
+    }
 
     try {
         // Check ownership
@@ -367,9 +383,9 @@ router.put('/update/:activity_id', auth, async (req, res) => {
 
         const result = await pool.query(
             `UPDATE tb_activity
-             SET title = $1, location = $2, datetime = $3, type_race = $4, description = $5, image = $6
-             WHERE id = $7 RETURNING *`,
-            [title, location, datetime, parseInt(raceType, 10), description, finalImage, activity_id]
+             SET title = $1, location = $2, latitude = $3, longitude = $4, datetime = $5, type_race = $6, description = $7, image = $8
+             WHERE id = $9 RETURNING *`,
+            [title, location, latitude, longitude, datetime, parseInt(raceType, 10), description, finalImage, activity_id]
         );
 
         res.status(200).json({ message: 'Activity updated successfully', activity: result.rows[0] });

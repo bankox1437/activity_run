@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import axios from 'axios'
 import Swal from 'sweetalert2'
+import LocationSearch from '../components/LocationSearch'
 
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
 const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
@@ -21,8 +22,7 @@ function UpdateActivity() {
     const [raceType, setRaceType] = useState('')
     const [raceTypes, setRaceTypes] = useState([])
     const [loading, setLoading] = useState(true)
-
-    const [form, setForm] = useState({ title: '', location: '', date: '', time: '', description: '' })
+    const [form, setForm] = useState({ title: '', location: '', latitude: null, longitude: null, date: '', time: '', description: '' })
 
     // Image state
     const [imagePreview, setImagePreview] = useState(null)   // URL to show in preview
@@ -55,7 +55,7 @@ function UpdateActivity() {
                     const date = dt.toLocaleDateString('en-CA', { timeZone: 'Asia/Bangkok' })
                     const time = dt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' })
 
-                    setForm({ title: info.title || '', location: info.location || '', date, time, description: info.description || '' })
+                    setForm({ title: info.title || '', location: info.location || '', latitude: info.latitude, longitude: info.longitude, date, time, description: info.description || '' })
                     setRaceType(String(info.type_race || ''))
 
                     // Show existing image if available
@@ -82,6 +82,10 @@ function UpdateActivity() {
             if (form.time < currentTime) newForm.time = ''
         }
         setForm(newForm)
+    }
+
+    const handleLocationSelect = ({ address, lat, lng }) => {
+        setForm(prev => ({ ...prev, location: address, latitude: lat, longitude: lng }))
     }
 
     const handleImageChange = async (e) => {
@@ -147,7 +151,7 @@ function UpdateActivity() {
         try {
             await axios.put(
                 `${apiURL}activity/update/${activityId}`,
-                { title: form.title, location: form.location, description: form.description, raceType, datetime, imageUrl },
+                { title: form.title, location: form.location, latitude: form.latitude, longitude: form.longitude, description: form.description, raceType, datetime, imageUrl },
                 { headers: { ...headers, 'Content-Type': 'application/json' } }
             )
             await Swal.fire({ title: 'Updated!', text: 'Activity has been updated successfully.', icon: 'success', timer: 2000, showConfirmButton: false })
@@ -222,11 +226,7 @@ function UpdateActivity() {
                     <div className="flex flex-col sm:flex-row gap-3 items-start">
                         <div className="flex-1 min-w-0">
                             <label className="block text-sm font-bold text-gray-800 mb-1.5">Location</label>
-                            <div className="relative">
-                                <Icon icon="mdi:map-marker-outline" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
-                                <input type="text" name="location" value={form.location} onChange={handleChange} placeholder="Location"
-                                    className="w-full pl-9 pr-4 py-2.5 rounded-full border border-gray-200 bg-gray-50 text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition" />
-                            </div>
+                            <LocationSearch onLocationSelect={handleLocationSelect} initialValue={form.location} />
                         </div>
 
                         <div className="sm:w-40 w-full">
