@@ -94,7 +94,7 @@ function Register() {
                                 </div>
                             </div>
                             <div className="sm:col-span-3">
-                                <button className='mt-1 w-full px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 font-semibold text-sm'>
+                                <button className='mt-1 w-full px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 font-semibold text-sm cursor-pointer'>
                                     Register
                                 </button>
                             </div>

@@ -78,7 +78,7 @@ function CreatedCard({ activity, onRemove }) {
         <div className="grid grid-cols-2 gap-2 mt-auto">
           <button
             onClick={() => navigate(`/activity/${activity.id}/requests`)}
-            className="flex-1 py-2 rounded-xl bg-blue-500 text-white text-xs font-semibold hover:bg-blue-600 transition flex items-center justify-center gap-1.5 cursor-pointers"
+            className="flex-1 py-2 rounded-xl bg-blue-500 text-white text-xs font-semibold hover:bg-blue-600 transition flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <Icon icon="mdi:account-check-outline" className="text-base" />
             Manage
@@ -176,7 +176,7 @@ function JoinedCard({ activity, onCancel }) {
         {statusKey === 0 && (
           <button
             onClick={() => onCancel(activity)}
-            className="mt-auto w-full py-2 rounded-xl border border-red-200 text-red-500 text-sm font-semibold hover:bg-red-50 transition flex items-center justify-center gap-1.5"
+            className="mt-auto w-full py-2 rounded-xl border border-red-200 text-red-500 text-sm font-semibold hover:bg-red-50 transition flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <Icon icon="mdi:close-circle-outline" className="text-base" />
             Cancel Request
@@ -186,7 +186,7 @@ function JoinedCard({ activity, onCancel }) {
         {canRate && (
           <button
             onClick={() => navigate(`/activity/${activity.activity_id}/review`)}
-            className="w-full py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 text-sm font-semibold hover:bg-amber-100 transition flex items-center justify-center gap-1.5"
+            className="w-full py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 text-sm font-semibold hover:bg-amber-100 transition flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <Icon icon="mdi:star-outline" className="text-base" />
             Rate Activity
@@ -282,7 +282,7 @@ function MyActivity() {
         <h1 className="text-2xl font-extrabold text-gray-900">My Activity</h1>
         <button
           onClick={() => navigate('/createActivity')}
-          className="flex items-center gap-2 px-5 py-2.5 bg-blue-500 text-white text-sm font-semibold rounded-full hover:bg-blue-600 transition shadow-sm"
+          className="flex items-center gap-2 px-5 py-2.5 bg-blue-500 text-white text-sm font-semibold rounded-full hover:bg-blue-600 transition shadow-sm cursor-pointer"
         >
           <Icon icon="mdi:plus" className="text-lg" />
           Create Activity
@@ -297,7 +297,7 @@ function MyActivity() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition border ${activeTab === tab.key
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition border cursor-pointer ${activeTab === tab.key
               ? 'bg-blue-500 text-white border-blue-500 shadow-sm'
               : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-500'
               }`}

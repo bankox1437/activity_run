@@ -192,7 +192,7 @@ function ActivityRequests() {
 
             <button
                 onClick={() => navigate(-1)}
-                className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-500 transition mb-5"
+                className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-500 transition mb-5 cursor-pointer"
             >
                 <Icon icon="mdi:arrow-left" />
                 Back to My Activity
@@ -232,7 +232,7 @@ function ActivityRequests() {
                     <button
                         key={p.key}
                         onClick={() => setActivePanel(p.key)}
-                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition border ${activePanel === p.key
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition border cursor-pointer ${activePanel === p.key
                             ? 'bg-blue-500 text-white border-blue-500 shadow-sm'
                             : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-500'
                             }`}
@@ -258,7 +258,7 @@ function ActivityRequests() {
                             <button
                                 key={f.key}
                                 onClick={() => setFilter(f.key)}
-                                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition border ${filter === f.key
+                                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition border cursor-pointer ${filter === f.key
                                     ? 'bg-blue-500 text-white border-blue-500 shadow-sm'
                                     : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-500'
                                     }`}
@@ -311,13 +311,13 @@ function ActivityRequests() {
                                         <div className="flex flex-col gap-2 flex-shrink-0">
                                             <button
                                                 onClick={() => handleConfirmAction(req.join_id, `${req.first_name} ${req.last_name}`, 'accepted')}
-                                                className="flex items-center gap-1 px-4 py-1.5 bg-green-500 text-white text-xs font-semibold rounded-full hover:bg-green-600 transition"
+                                                className="flex items-center gap-1 px-4 py-1.5 bg-green-500 text-white text-xs font-semibold rounded-full hover:bg-green-600 transition cursor-pointer"
                                             >
                                                 <Icon icon="mdi:check" /> Accept
                                             </button>
                                             <button
                                                 onClick={() => handleConfirmAction(req.join_id, `${req.first_name} ${req.last_name}`, 'rejected')}
-                                                className="flex items-center gap-1 px-4 py-1.5 border border-red-200 text-red-500 text-xs font-medium rounded-full hover:bg-red-50 transition"
+                                                className="flex items-center gap-1 px-4 py-1.5 border border-red-200 text-red-500 text-xs font-medium rounded-full hover:bg-red-50 transition cursor-pointer"
                                             >
                                                 <Icon icon="mdi:close" /> Reject
                                             </button>

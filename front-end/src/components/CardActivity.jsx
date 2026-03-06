@@ -172,7 +172,7 @@ function CardActivity({ raceType, selectedDate }) {
                                         ) : joinedMap[activity.id] === 0 ? (
                                             <span className="flex-1 py-2 bg-amber-50 border border-amber-200 text-amber-600 text-xs font-semibold rounded-full text-center flex items-center justify-center gap-1">
                                                 <Icon icon="mdi:clock-outline" className="text-sm" />
-                                                Processing…
+                                                Processing
                                             </span>
                                         ) : joinedMap[activity.id] === 1 ? (
                                             <span className="flex-1 py-2 bg-green-50 border border-green-200 text-green-600 text-xs font-semibold rounded-full text-center flex items-center justify-center gap-1">
@@ -218,7 +218,7 @@ function DescriptionModal({ activity, onClose }) {
                     <h3 className="font-bold text-gray-900 text-base border-b border-gray-100 pb-2">Description</h3>
                     <button
                         onClick={onClose}
-                        className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition"
+                        className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition cursor-pointer"
                     >
                         <Icon icon="mdi:close" className="text-base" />
                     </button>

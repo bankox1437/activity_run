@@ -25,8 +25,8 @@ function OptionActivity({ onChangeType }) {
         <button
           onClick={() => handleClick('all')}
           className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition border ${selected === 'all'
-            ? 'bg-blue-500 text-white border-blue-500 shadow-sm'
-            : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-500'
+            ? 'bg-blue-500 text-white border-blue-500 shadow-sm cursor-pointer'
+            : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-500 cursor-pointer'
             }`}
         >
           All
@@ -37,8 +37,8 @@ function OptionActivity({ onChangeType }) {
             key={rt.race_type_id}
             onClick={() => handleClick(rt.race_type_name)}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition border ${selected === rt.race_type_name
-              ? 'bg-blue-500 text-white border-blue-500 shadow-sm'
-              : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-500'
+              ? 'bg-blue-500 text-white border-blue-500 shadow-sm cursor-pointer'
+              : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-500 cursor-pointer'
               }`}
           >
             {rt.race_type_name}

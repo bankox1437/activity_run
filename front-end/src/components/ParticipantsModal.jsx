@@ -48,7 +48,7 @@ function ParticipantsModal({ activity, onClose }) {
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition"
+                        className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition cursor-pointer"
                     >
                         <Icon icon="mdi:close" className="text-base" />
                     </button>

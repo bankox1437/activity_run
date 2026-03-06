@@ -171,7 +171,7 @@ function UpdateActivity() {
             <div className="w-full max-w-2xl p-8">
 
                 <button onClick={() => navigate(-1)}
-                    className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-500 transition mb-6">
+                    className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-500 transition mb-6 cursor-pointer">
                     <Icon icon="mdi:arrow-left" />Back to My Activity
                 </button>
 
@@ -192,20 +192,20 @@ function UpdateActivity() {
                                 )}
                                 {!uploading && (
                                     <button type="button" onClick={handleRemoveImage}
-                                        className="absolute top-2 right-2 w-7 h-7 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition">
+                                        className="absolute top-2 right-2 w-7 h-7 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition cursor-pointer">
                                         <Icon icon="mdi:close" className="text-base" />
                                     </button>
                                 )}
                                 {!uploading && (
                                     <button type="button" onClick={() => fileInputRef.current?.click()}
-                                        className="absolute bottom-2 right-2 px-3 py-1 bg-black/50 hover:bg-black/70 text-white text-xs rounded-full flex items-center gap-1 transition">
+                                        className="absolute bottom-2 right-2 px-3 py-1 bg-black/50 hover:bg-black/70 text-white text-xs rounded-full flex items-center gap-1 transition cursor-pointer">
                                         <Icon icon="mdi:pencil" className="text-sm" /> Change
                                     </button>
                                 )}
                             </div>
                         ) : (
                             <button type="button" onClick={() => fileInputRef.current?.click()}
-                                className="w-full h-32 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 hover:bg-blue-50 hover:border-blue-300 text-gray-400 hover:text-blue-400 flex flex-col items-center justify-center gap-2 transition">
+                                className="w-full h-32 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 hover:bg-blue-50 hover:border-blue-300 text-gray-400 hover:text-blue-400 flex flex-col items-center justify-center gap-2 transition cursor-pointer">
                                 <Icon icon="mdi:image-plus-outline" className="text-3xl" />
                                 <span className="text-xs font-medium">Click to upload image</span>
                             </button>
@@ -268,11 +268,11 @@ function UpdateActivity() {
 
                     <div className="flex justify-end gap-3 pt-1">
                         <button type="button" onClick={() => navigate(-1)}
-                            className="px-6 py-2.5 rounded-full border border-gray-300 text-gray-600 text-sm font-medium hover:bg-gray-100 transition">
+                            className="px-6 py-2.5 rounded-full border border-gray-300 text-gray-600 text-sm font-medium hover:bg-gray-100 transition cursor-pointer">
                             Cancel
                         </button>
                         <button type="submit" disabled={uploading}
-                            className="px-6 py-2.5 rounded-full bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition shadow-sm disabled:opacity-60 disabled:cursor-not-allowed">
+                            className="px-6 py-2.5 rounded-full bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition shadow-sm disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer">
                             {uploading ? 'Uploading...' : 'Save Changes'}
                         </button>
                     </div>

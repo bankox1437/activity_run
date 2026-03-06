@@ -58,7 +58,7 @@ function Profile() {
 
         try {
 
-            if(!form.firstName || !form.lastName){
+            if (!form.firstName || !form.lastName) {
                 Swal.fire({
                     title: 'Please fill in all required fields',
                     text: 'First name and Last name are required',
@@ -128,7 +128,7 @@ function Profile() {
                     </div>
                     <button
                         type="submit"
-                        className="px-6 py-2.5 rounded-full bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition shadow-sm"
+                        className="px-6 py-2.5 rounded-full bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition shadow-sm cursor-pointer"
                     >Update Profile</button>
                 </form>
             </div>
