@@ -14,7 +14,7 @@ function Home() {
   const { user, loading } = useContext(AuthContext)
 
   return (
-    <div className="bg-white w-full p-5">
+    <div className="min-h-screen bg-gray-50 p-4 max-w-6xl mx-auto">
 
       <div className="w-full relative rounded-2xl overflow-hidden shadow-md">
         <img
@@ -33,7 +33,7 @@ function Home() {
             {user && (
               <button
                 onClick={() => navigate('/myActivity')}
-                className="flex items-center gap-2 px-5 py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white text-sm font-semibold rounded-full transition border border-white/30"
+                className="flex items-center gap-2 px-5 py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white text-sm font-semibold rounded-full transition border border-white/30 cursor-pointer"
               >
                 <Icon icon="mdi:account-outline" className="text-lg" />
                 My Activity
@@ -62,7 +62,7 @@ function Home() {
               {selectedDate && (
                 <button
                   onClick={() => setSelectedDate('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 transition cursor-pointer"
                 >
                   <Icon icon="mdi:close-circle" />
                 </button>

@@ -42,22 +42,22 @@ function Navbar() {
           <div className="hidden md:flex items-center gap-4">
             {user ? (
               <>
-              <button onClick={() => navigate('/myProfile')} >
-                <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full hover:bg-gray-200 cursor-pointer">
-                  
+                <button onClick={() => navigate('/myProfile')} className="cursor-pointer">
+                  <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full hover:bg-gray-200 cursor-pointer">
+
                     <Icon icon="mdi:account-circle" className="text-gray-500 text-lg" />
                     <span className="text-sm font-medium text-gray-700">
                       {user.first_name} {user.last_name}
                     </span>
-            
-                 
-                </div>
-              </button>
+
+
+                  </div>
+                </button>
                 <div className="h-5 w-px bg-gray-200" />
 
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-500 transition font-medium"
+                  className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-500 transition font-medium cursor-pointer"
                 >
                   <Icon icon="mdi:logout-variant" className="text-base" />
                   Logout
@@ -70,7 +70,7 @@ function Navbar() {
 
           {/* Hamburger (mobile) */}
           <button
-            className="md:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 transition"
+            className="md:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 transition cursor-pointer"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle menu"
           >
@@ -95,7 +95,7 @@ function Navbar() {
                 <>
                   <p className="text-sm">{user.first_name} {user.last_name}</p>
                   <button onClick={handleLogout}
-                    className="flex items-center gap-1 text-sm text-red-500 hover:text-red-600 transition font-medium ml-auto"
+                    className="flex items-center gap-1 text-sm text-red-500 hover:text-red-600 transition font-medium ml-auto cursor-pointer"
                   >
                     <Icon icon="mdi:logout" className="text-base" />
                     Logout

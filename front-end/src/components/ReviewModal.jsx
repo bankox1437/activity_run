@@ -69,7 +69,7 @@ function ReviewModal({ activity, existingReview, onClose, onSuccess }) {
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition"
+                        className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition cursor-pointer"
                     >
                         <Icon icon="mdi:close" className="text-base" />
                     </button>
@@ -123,7 +123,7 @@ function ReviewModal({ activity, existingReview, onClose, onSuccess }) {
                     <button
                         onClick={handleSubmit}
                         disabled={submitting || !rating}
-                        className="w-full py-2.5 rounded-xl bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full py-2.5 rounded-xl bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                     >
                         {submitting ? (
                             <Icon icon="mdi:loading" className="animate-spin text-lg" />

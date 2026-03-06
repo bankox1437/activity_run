@@ -82,8 +82,8 @@ function CreateActivity() {
     const handleSubmit = async (e) => {
         e.preventDefault()
 
-        if (!form.date || !form.time || !form.title || !raceType || !form.description) {
-            Swal.fire({ title: 'Please fill in all required fields', text: 'Title, Date, Time, Race Type and Description are required', icon: 'warning' })
+        if (!form.date || !form.time || !form.title || !raceType || !form.description || !form.location) {
+            Swal.fire({ title: 'Please fill in all required fields', text: 'Title, Location, Date, Time, Race Type and Description are required', icon: 'warning' })
             return
         }
 
@@ -135,7 +135,7 @@ function CreateActivity() {
                                     <button
                                         type="button"
                                         onClick={handleRemoveImage}
-                                        className="absolute top-2 right-2 w-7 h-7 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition"
+                                        className="absolute top-2 right-2 w-7 h-7 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition cursor-pointer"
                                     >
                                         <Icon icon="mdi:close" className="text-base" />
                                     </button>
@@ -145,7 +145,7 @@ function CreateActivity() {
                             <button
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}
-                                className="w-full h-32 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 hover:bg-blue-50 hover:border-blue-300 text-gray-400 hover:text-blue-400 flex flex-col items-center justify-center gap-2 transition"
+                                className="w-full h-32 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 hover:bg-blue-50 hover:border-blue-300 text-gray-400 hover:text-blue-400 flex flex-col items-center justify-center gap-2 transition cursor-pointer"
                             >
                                 <Icon icon="mdi:image-plus-outline" className="text-3xl" />
                                 <span className="text-xs font-medium">Click to upload image</span>
@@ -162,7 +162,7 @@ function CreateActivity() {
 
                     <div className="flex flex-col sm:flex-row gap-3 items-start">
                         <div className="flex-1 min-w-0">
-                            <label className="block text-sm font-bold text-gray-800 mb-1.5">Location</label>
+                            <label className="block text-sm font-bold text-gray-800 mb-1.5">Location <span className="text-red-500">*</span></label>
                             <div className="relative">
                                 <Icon icon="mdi:map-marker-outline" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
                                 <input type="text" name="location" value={form.location} onChange={handleChange} placeholder="Location"
@@ -209,11 +209,11 @@ function CreateActivity() {
 
                     <div className="flex justify-end gap-3 pt-1">
                         <button type="button" onClick={() => navigate(-1)}
-                            className="px-6 py-2.5 rounded-full border border-gray-300 text-gray-600 text-sm font-medium hover:bg-gray-100 transition">
+                            className="px-6 py-2.5 rounded-full border border-gray-300 text-gray-600 text-sm font-medium hover:bg-gray-100 transition cursor-pointer">
                             Cancel
                         </button>
                         <button type="submit" disabled={uploading}
-                            className="px-6 py-2.5 rounded-full bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition shadow-sm disabled:opacity-60 disabled:cursor-not-allowed">
+                            className="px-6 py-2.5 rounded-full bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition shadow-sm disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer">
                             {uploading ? 'Uploading...' : 'Create Activity'}
                         </button>
                     </div>
