@@ -150,13 +150,11 @@ function CardActivity({ raceType, selectedDate }) {
 
                                 <div className="flex flex-col gap-1 text-xs text-gray-500">
                                     <div className="flex flex-col gap-0.5">
-                                        <div className="flex items-center gap-1 text-blue-400">
-                                            <Icon icon="mdi:map-marker-outline" className="shrink-0" />
-                                            <span className="font-semibold text-[10px] uppercase">Location</span>
+                                        <div className="flex items-start gap-1 line-clamp-3">
+                                            <Icon icon="mdi:map-marker-outline" className="shrink-0 mt-0.5 text-blue-400" />
+                                                {activity.location || '-'}
                                         </div>
-                                        <div className="text-gray-700 leading-tight line-clamp-2 pl-0.5">
-                                            {activity.location || '-'}
-                                        </div>
+                                        
                                     </div>
                                     <span className="flex items-center gap-1">
                                         <Icon icon="mdi:calendar-outline" className="text-blue-400 shrink-0" />
