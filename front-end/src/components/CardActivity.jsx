@@ -108,7 +108,7 @@ function CardActivity({ raceType, selectedDate }) {
                     return (
                         <div
                             key={activity.id}
-                            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition group"
+                            className="h-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition group flex flex-col"
                         >
                             <div className="relative overflow-hidden bg-gray-100 h-40">
                                 <img
@@ -121,7 +121,7 @@ function CardActivity({ raceType, selectedDate }) {
                                 </span>
                             </div>
 
-                            <div className="p-4 flex flex-col gap-2">
+                            <div className="p-4 flex flex-col gap-2 flex-1">
                                 <div className="flex items-start justify-between gap-2 border-b border-gray-100 pb-2">
                                     <h2 className="font-bold text-gray-900 text-sm leading-snug line-clamp-1">
                                         {activity.title}
@@ -149,7 +149,7 @@ function CardActivity({ raceType, selectedDate }) {
                                         {formatTime(activity.datetime)}
                                     </span>
                                 </div>
-                                <div className="flex items-center gap-2 mt-2">
+                                <div className="flex items-center gap-2 mt-auto pt-2">
                                     {user ? (
                                         user.id === activity.user_id ? (
                                             <span className="flex-1 py-2 bg-gray-100 text-gray-500 text-xs font-semibold rounded-full text-center flex items-center justify-center gap-1">
@@ -172,13 +172,7 @@ function CardActivity({ raceType, selectedDate }) {
                                                 Join Run
                                             </button>
                                         )
-                                    ) : (
-                                        <button onClick={() => navigate('/login')}
-                                            className="flex-1 py-2 bg-blue-500 hover:bg-blue-600 active:scale-95 text-white text-xs font-bold rounded-full cursor-pointer transition-all flex items-center justify-center gap-1 shadow-sm shadow-blue-200">
-                                            <Icon icon="mdi:run-fast" className="text-sm" />
-                                            Join Run
-                                        </button>
-                                    )}
+                                    ) : null}
                                 </div>
 
                             </div>
