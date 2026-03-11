@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchAllActivities, fetchJoinedMap, updateJoinedMap } from '../store/slices/activitySlice'
 import axios from 'axios'
@@ -28,6 +29,7 @@ function formatTime(datetime) {
 
 function CardActivity({ raceType, selectedDate }) {
     const dispatch = useDispatch()
+    const navigate = useNavigate()
     const { user } = useSelector((state) => state.auth)
     const { homeActivities, homeLoading, homeError, joinedMap } = useSelector((state) => state.activity)
 
@@ -171,7 +173,7 @@ function CardActivity({ raceType, selectedDate }) {
                                             </button>
                                         )
                                     ) : (
-                                        <button onClick={() => setJoinTarget(activity)}
+                                        <button onClick={() => navigate('/login')}
                                             className="flex-1 py-2 bg-blue-500 hover:bg-blue-600 active:scale-95 text-white text-xs font-bold rounded-full cursor-pointer transition-all flex items-center justify-center gap-1 shadow-sm shadow-blue-200">
                                             <Icon icon="mdi:run-fast" className="text-sm" />
                                             Join Run
@@ -202,8 +204,8 @@ function CardActivity({ raceType, selectedDate }) {
                             key={p}
                             onClick={() => setPage(p)}
                             className={`w-9 h-9 rounded-full text-sm font-semibold transition cursor-pointer ${p === currentPage
-                                    ? 'bg-blue-500 text-white shadow-sm'
-                                    : 'bg-white border border-gray-200 text-gray-600 hover:border-blue-400 hover:text-blue-500'
+                                ? 'bg-blue-500 text-white shadow-sm'
+                                : 'bg-white border border-gray-200 text-gray-600 hover:border-blue-400 hover:text-blue-500'
                                 }`}
                         >
                             {p}
