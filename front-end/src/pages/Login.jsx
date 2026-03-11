@@ -1,12 +1,13 @@
-import React, { useState, useContext } from 'react'
+import React, { useState } from 'react'
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios';
-import { AuthContext } from '../context/AuthContext'
-function Login() {
+import { useDispatch } from 'react-redux'
+import { loginSuccess } from '../store/slices/authSlice'
 
+function Login() {
     const apiURL = import.meta.env.VITE_API_URL;
-    const { login } = useContext(AuthContext);
+    const dispatch = useDispatch()
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -19,9 +20,7 @@ function Login() {
                 email,
                 password
             })
-
-            // บันทึก token ผ่าน AuthContext (เก็บใน localStorage ชื่อ 'token')
-            login(res.data.token, res.data.user)
+            dispatch(loginSuccess({ token: res.data.token, user: res.data.user }))
             navigate('/')
         } catch (err) {
             console.log(err)

@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchMyActivities, removeCreated, removeJoined } from '../store/slices/activitySlice'
 import axios from 'axios'
 import Swal from 'sweetalert2'
-import { AuthContext } from '../context/AuthContext'
 import defaultCardImg from '../assets/cards_img/card_run.jpg'
 
 const apiURL = import.meta.env.VITE_API_URL
+const PAGE_SIZE = 6
 
 const statusConfig = {
   0: { label: 'Processing', icon: 'mdi:clock-outline', cls: 'bg-yellow-50 text-yellow-600 border-yellow-200' },
@@ -30,6 +32,46 @@ function formatTime(datetime) {
   })
 }
 
+// ── Pagination Component ─────────────────────────────────────────────────────
+function Pagination({ page, totalPages, onChange }) {
+  if (totalPages <= 1) return null
+  return (
+    <div className="flex items-center justify-center gap-2 mt-8">
+      <button
+        onClick={() => onChange(Math.max(1, page - 1))}
+        disabled={page === 1}
+        className="flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:border-blue-400 hover:text-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+      >
+        <Icon icon="mdi:chevron-left" className="text-base" />
+        Prev
+      </button>
+
+      {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+        <button
+          key={p}
+          onClick={() => onChange(p)}
+          className={`w-9 h-9 rounded-full text-sm font-semibold transition cursor-pointer ${p === page
+              ? 'bg-blue-500 text-white shadow-sm'
+              : 'bg-white border border-gray-200 text-gray-600 hover:border-blue-400 hover:text-blue-500'
+            }`}
+        >
+          {p}
+        </button>
+      ))}
+
+      <button
+        onClick={() => onChange(Math.min(totalPages, page + 1))}
+        disabled={page === totalPages}
+        className="flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:border-blue-400 hover:text-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+      >
+        Next
+        <Icon icon="mdi:chevron-right" className="text-base" />
+      </button>
+    </div>
+  )
+}
+
+// ── CreatedCard ──────────────────────────────────────────────────────────────
 function CreatedCard({ activity, onRemove }) {
   const navigate = useNavigate()
 
@@ -108,14 +150,13 @@ function CreatedCard({ activity, onRemove }) {
               <Icon icon="mdi:trash-can-outline" className="text-base" />
             </button>
           </div>
-
         </div>
-
       </div>
     </div>
   )
 }
 
+// ── JoinedCard ───────────────────────────────────────────────────────────────
 function JoinedCard({ activity, onCancel }) {
   const navigate = useNavigate()
   const statusKey = Number(activity.status)
@@ -192,37 +233,27 @@ function JoinedCard({ activity, onCancel }) {
             Rate Activity
           </button>
         )}
-
       </div>
     </div>
   )
 }
 
+// ── MyActivity Page ──────────────────────────────────────────────────────────
 function MyActivity() {
   const navigate = useNavigate()
-  const { user } = useContext(AuthContext)
+  const dispatch = useDispatch()
+  const { myCreated, myJoined, myLoading } = useSelector((state) => state.activity)
   const [activeTab, setActiveTab] = useState('created')
+  const [createdPage, setCreatedPage] = useState(1)
+  const [joinedPage, setJoinedPage] = useState(1)
 
-  const [created, setCreated] = useState([])
-  const [joined, setJoined] = useState([])
-  const [loading, setLoading] = useState(true)
+  useEffect(() => { dispatch(fetchMyActivities()) }, [dispatch])
 
-  const fetchData = () => {
-    const token = localStorage.getItem('token')
-    const headers = { Authorization: `Bearer ${token}` }
-    Promise.all([
-      axios.get(`${apiURL}activity/my-created`, { headers }),
-      axios.get(`${apiURL}activity/my-joined`, { headers }),
-    ])
-      .then(([createdRes, joinedRes]) => {
-        setCreated(createdRes.data.data || [])
-        setJoined(joinedRes.data.data || [])
-      })
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false))
-  }
-
-  useEffect(() => { fetchData() }, [])
+  // Reset pages when tab changes
+  useEffect(() => {
+    if (activeTab === 'created') setCreatedPage(1)
+    else setJoinedPage(1)
+  }, [activeTab])
 
   const handleCancelJoin = async (activity) => {
     const result = await Swal.fire({
@@ -240,7 +271,7 @@ function MyActivity() {
       await axios.delete(`${apiURL}activity/join/${activity.join_id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       })
-      setJoined((prev) => prev.filter((j) => j.join_id !== activity.join_id))
+      dispatch(removeJoined(activity.join_id))
       Swal.fire({ title: 'Cancelled', text: 'Your join request has been cancelled.', icon: 'success', confirmButtonColor: '#3b82f6' })
     } catch (err) {
       Swal.fire({ title: 'Error', text: err.response?.data?.message || 'Cancel failed', icon: 'error', confirmButtonColor: '#3b82f6' })
@@ -263,7 +294,7 @@ function MyActivity() {
       await axios.delete(`${apiURL}activity/${activity.id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       })
-      setCreated((prev) => prev.filter((a) => a.id !== activity.id))
+      dispatch(removeCreated(activity.id))
       Swal.fire({ title: 'Deleted', text: 'Activity has been deleted.', icon: 'success', confirmButtonColor: '#3b82f6' })
     } catch (err) {
       Swal.fire({
@@ -274,6 +305,12 @@ function MyActivity() {
       })
     }
   }
+
+  // Pagination calc
+  const createdTotal = Math.max(1, Math.ceil(myCreated.length / PAGE_SIZE))
+  const joinedTotal = Math.max(1, Math.ceil(myJoined.length / PAGE_SIZE))
+  const pagedCreated = myCreated.slice((createdPage - 1) * PAGE_SIZE, createdPage * PAGE_SIZE)
+  const pagedJoined = myJoined.slice((joinedPage - 1) * PAGE_SIZE, joinedPage * PAGE_SIZE)
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 max-w-6xl mx-auto">
@@ -305,38 +342,43 @@ function MyActivity() {
             <Icon icon={tab.icon} className="text-base" />
             {tab.label}
             <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full font-semibold ${activeTab === tab.key ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-600'}`}>
-              {tab.key === 'created' ? created.length : joined.length}
+              {tab.key === 'created' ? myCreated.length : myJoined.length}
             </span>
           </button>
         ))}
       </div>
 
-      {loading ? (
+      {myLoading ? (
         <div className="flex justify-center py-20">
           <Icon icon="mdi:loading" className="text-4xl text-gray-300 animate-spin" />
         </div>
       ) : (
         <>
           {activeTab === 'created' && (
-            created.length === 0
+            myCreated.length === 0
               ? <EmptyState message="You haven't created any activities yet." />
-              : <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {created.map((a) => <CreatedCard key={a.id} activity={a} onRemove={handleDeleteActivity} />)}
-              </div>
+              : <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {pagedCreated.map((a) => <CreatedCard key={a.id} activity={a} onRemove={handleDeleteActivity} />)}
+                </div>
+                <Pagination page={createdPage} totalPages={createdTotal} onChange={setCreatedPage} />
+              </>
           )}
 
           {activeTab === 'joined' && (
-            joined.length === 0
+            myJoined.length === 0
               ? <EmptyState message="You haven't joined any activities yet." />
-              : <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {joined.map((a) => (
-                  <JoinedCard key={a.join_id} activity={a} onCancel={() => handleCancelJoin(a)} />
-                ))}
-              </div>
+              : <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {pagedJoined.map((a) => (
+                    <JoinedCard key={a.join_id} activity={a} onCancel={() => handleCancelJoin(a)} />
+                  ))}
+                </div>
+                <Pagination page={joinedPage} totalPages={joinedTotal} onChange={setJoinedPage} />
+              </>
           )}
         </>
       )}
-
     </div>
   )
 }
