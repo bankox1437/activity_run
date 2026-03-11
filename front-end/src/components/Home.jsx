@@ -1,17 +1,17 @@
-import React, { useContext } from 'react'
+import React from 'react'
 import Banner from '../assets/icon/banner_run.jpg'
 import OptionActivity from './OptionActivity'
 import CardActivity from './CardActivity'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
-import { AuthContext } from '../context/AuthContext'
+import { useSelector } from 'react-redux'
 
 function Home() {
   const [raceType, setRaceType] = useState('all')
   const [selectedDate, setSelectedDate] = useState('')
   const navigate = useNavigate()
-  const { user, loading } = useContext(AuthContext)
+  const { user } = useSelector((state) => state.auth)
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 max-w-6xl mx-auto">

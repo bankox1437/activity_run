@@ -1,12 +1,14 @@
-import React, { useEffect, useState, useContext } from 'react'
+import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchAllActivities, fetchJoinedMap, updateJoinedMap } from '../store/slices/activitySlice'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 import { Icon } from '@iconify/react'
-import { AuthContext } from '../context/AuthContext'
 import JoinModal from './JoinModal'
 import defaultCardImg from '../assets/cards_img/card_run.jpg'
 
 const apiURL = import.meta.env.VITE_API_URL
+const PAGE_SIZE = 8
 
 function formatDate(datetime) {
     if (!datetime) return '-'
@@ -24,65 +26,46 @@ function formatTime(datetime) {
     })
 }
 
-
 function CardActivity({ raceType, selectedDate }) {
+    const dispatch = useDispatch()
+    const { user } = useSelector((state) => state.auth)
+    const { homeActivities, homeLoading, homeError, joinedMap } = useSelector((state) => state.activity)
 
-    const { user } = useContext(AuthContext)
-
-    const [activities, setActivities] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(null)
     const [joinTarget, setJoinTarget] = useState(null)
     const [descriptionTarget, setDescriptionTarget] = useState(null)
-    const [joinedMap, setJoinedMap] = useState({}) // keep status 0,1,2
-
-    const fetchJoined = () => {
-        const token = localStorage.getItem('token')
-        if (!token) return
-        axios.get(`${apiURL}activity/my-joined`, {
-            headers: { Authorization: `Bearer ${token}` }
-        }).then(res => {
-            const map = {};
-            (res.data.data || []).forEach(j => {
-                map[j.activity_id] = j.status
-            })
-            setJoinedMap(map)
-        }).catch(() => { })
-    }
+    const [page, setPage] = useState(1)
 
     useEffect(() => {
-        axios.get(`${apiURL}activity/all`)
-            .then(res => {
-                setActivities(res.data.data || [])
-                setLoading(false)
-            })
-            .catch(err => {
-                console.error(err)
-                setError('Failed to load activities')
-                setLoading(false)
-            })
-        fetchJoined()
-    }, [])
+        dispatch(fetchAllActivities())
+        if (user) dispatch(fetchJoinedMap())
+    }, [dispatch, user])
 
-    if (loading) return (
+    // Reset to page 1 when filters change
+    useEffect(() => { setPage(1) }, [raceType, selectedDate])
+
+    if (homeLoading) return (
         <div className="flex justify-center py-16 text-gray-400">
             <Icon icon="mdi:loading" className="text-4xl animate-spin" />
         </div>
     )
 
-    if (error) return (
+    if (homeError) return (
         <div className="flex flex-col items-center py-16 text-gray-400">
             <Icon icon="mdi:alert-circle-outline" className="text-5xl mb-2" />
-            <p className="text-sm">{error}</p>
+            <p className="text-sm">{homeError}</p>
         </div>
     )
 
-    const filtered = activities.filter((a) => {
+    const filtered = homeActivities.filter((a) => {
         const matchType = raceType === 'all' || a.type_race_name === raceType
         const activityDate = a.datetime ? new Date(a.datetime).toLocaleDateString('en-CA', { timeZone: 'Asia/Bangkok' }) : ''
         const matchDate = !selectedDate || activityDate === selectedDate
         return matchType && matchDate
     })
+
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+    const currentPage = Math.min(page, totalPages)
+    const paged = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
     if (filtered.length === 0) return (
         <div className="flex flex-col items-center py-16 text-gray-300">
@@ -90,23 +73,24 @@ function CardActivity({ raceType, selectedDate }) {
         </div>
     )
 
+    const handleJoinSuccess = () => {
+        setJoinTarget(null)
+        dispatch(fetchJoinedMap())
+        Swal.fire({
+            title: 'Success!',
+            text: 'Joined successfully!',
+            icon: 'success',
+            confirmButtonColor: '#3b82f6',
+        })
+    }
+
     return (
         <>
-
             {joinTarget && (
                 <JoinModal
                     activity={joinTarget}
                     onClose={() => setJoinTarget(null)}
-                    onSuccess={() => {
-                        setJoinTarget(null)
-                        fetchJoined()
-                        Swal.fire({
-                            title: 'Success!',
-                            text: 'Joined successfully!',
-                            icon: 'success',
-                            confirmButtonColor: '#3b82f6',
-                        })
-                    }}
+                    onSuccess={handleJoinSuccess}
                 />
             )}
 
@@ -118,8 +102,7 @@ function CardActivity({ raceType, selectedDate }) {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filtered.map((activity) => {
-                    const isPast = new Date(activity.datetime) < new Date()
+                {paged.map((activity) => {
                     return (
                         <div
                             key={activity.id}
@@ -152,9 +135,8 @@ function CardActivity({ raceType, selectedDate }) {
                                     <div className="flex flex-col gap-0.5">
                                         <div className="flex items-start gap-1 line-clamp-3">
                                             <Icon icon="mdi:map-marker-outline" className="shrink-0 mt-0.5 text-blue-400" />
-                                                {activity.location || '-'}
+                                            {activity.location || '-'}
                                         </div>
-                                        
                                     </div>
                                     <span className="flex items-center gap-1">
                                         <Icon icon="mdi:calendar-outline" className="text-blue-400 shrink-0" />
@@ -166,7 +148,6 @@ function CardActivity({ raceType, selectedDate }) {
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2 mt-2">
-                                    {/* Action / Status button — full width */}
                                     {user ? (
                                         user.id === activity.user_id ? (
                                             <span className="flex-1 py-2 bg-gray-100 text-gray-500 text-xs font-semibold rounded-full text-center flex items-center justify-center gap-1">
@@ -203,6 +184,42 @@ function CardActivity({ raceType, selectedDate }) {
                     )
                 })}
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-8">
+                    <button
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:border-blue-400 hover:text-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                    >
+                        <Icon icon="mdi:chevron-left" className="text-base" />
+                        Prev
+                    </button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                        <button
+                            key={p}
+                            onClick={() => setPage(p)}
+                            className={`w-9 h-9 rounded-full text-sm font-semibold transition cursor-pointer ${p === currentPage
+                                    ? 'bg-blue-500 text-white shadow-sm'
+                                    : 'bg-white border border-gray-200 text-gray-600 hover:border-blue-400 hover:text-blue-500'
+                                }`}
+                        >
+                            {p}
+                        </button>
+                    ))}
+
+                    <button
+                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-600 hover:border-blue-400 hover:text-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                    >
+                        Next
+                        <Icon icon="mdi:chevron-right" className="text-base" />
+                    </button>
+                </div>
+            )}
         </>
     )
 }

@@ -1,17 +1,19 @@
-import React, { useState, useContext } from 'react'
+import React, { useState } from 'react'
 import '../styles/Navbar.css'
 import Logo from '../assets/icon/run_life.jpg'
 import { Icon } from "@iconify/react";
-import { AuthContext } from '../context/AuthContext'
+import { useSelector, useDispatch } from 'react-redux'
+import { logout } from '../store/slices/authSlice'
 import { useNavigate } from 'react-router-dom'
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const { user, logout } = useContext(AuthContext);
+  const { user } = useSelector((state) => state.auth)
+  const dispatch = useDispatch()
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout()
+    dispatch(logout())
     navigate('/login')
   }
 
@@ -34,7 +36,6 @@ function Navbar() {
               <>
                 <a href="/" className="text-gray-600 hover:text-blue-500 transition duration-200">Home</a>
                 <a href="/myActivity" className="text-gray-600 hover:text-blue-500 transition duration-200">Activity</a>
-                {/* <a href="/" className="text-gray-600 hover:text-blue-500 transition duration-200">Community</a> */}
               </>
             )}
           </div>
@@ -85,7 +86,6 @@ function Navbar() {
               <>
                 <a href="/" className="text-gray-600 hover:text-blue-500 transition duration-200">Home</a>
                 <a href="/myActivity" className="text-gray-600 hover:text-blue-500 transition duration-200">Activity</a>
-                {/* <a href="/" className="text-gray-600 hover:text-blue-500 transition duration-200">Community</a> */}
               </>
             )}
 
