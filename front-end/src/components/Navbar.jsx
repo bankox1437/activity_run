@@ -19,85 +19,42 @@ function Navbar() {
 
   return (
     <>
-      <div className="bg-white text-gray-800 px-4 py-2 shadow-md fixed top-0 left-0 right-0 z-50">
+      <div className="bg-white text-gray-800 shadow-md fixed top-0 left-0 right-0 z-50">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-10 py-2">
+          <div className="flex items-center justify-between">
+            <div className="logo w-32 sm:w-40">
+              <a href='/'>
+                <img src={Logo} alt="Logo" className="w-auto object-contain" />
+              </a>
+            </div>
 
-        <div className="flex items-center justify-between">
+            {/* Desktop */}
+            <div className="hidden md:flex gap-6">
+              {user && (
+                <>
+                  <a href="/" className="text-gray-600 hover:text-blue-500 transition duration-200">Home</a>
+                  <a href="/myActivity" className="text-gray-600 hover:text-blue-500 transition duration-200">Activity</a>
+                </>
+              )}
+            </div>
 
-          <div className="logo w-32 sm:w-40">
-            <a href='/'>
-              <img src={Logo} alt="Logo" className="w-auto object-contain" />
-            </a>
-
-          </div>
-
-          {/* Desktop */}
-          <div className="hidden md:flex gap-6">
-            {user && (
-              <>
-                <a href="/" className="text-gray-600 hover:text-blue-500 transition duration-200">Home</a>
-                <a href="/myActivity" className="text-gray-600 hover:text-blue-500 transition duration-200">Activity</a>
-              </>
-            )}
-          </div>
-
-          <div className="hidden md:flex items-center gap-4">
-            {user ? (
-              <>
-                <button onClick={() => navigate('/myProfile')} className="cursor-pointer">
-                  <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full hover:bg-gray-200 cursor-pointer">
-
-                    <Icon icon="mdi:account-circle" className="text-gray-500 text-lg" />
-                    <span className="text-sm font-medium text-gray-700">
-                      {user.first_name} {user.last_name}
-                    </span>
-
-
-                  </div>
-                </button>
-                <div className="h-5 w-px bg-gray-200" />
-
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-500 transition font-medium cursor-pointer"
-                >
-                  <Icon icon="mdi:logout-variant" className="text-base" />
-                  Logout
-                </button>
-              </>
-            ) : (
-              <a href="/login" className="text-gray-600 hover:text-blue-500 transition duration-200">Login</a>
-            )}
-          </div>
-
-          {/* Hamburger (mobile) */}
-          <button
-            className="md:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 transition cursor-pointer"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle menu"
-          >
-            <Icon icon={menuOpen ? "mdi:close" : "mdi:menu"} className="text-2xl" />
-          </button>
-        </div>
-
-        {/* Mobile */}
-        {menuOpen && (
-          <div className="md:hidden flex flex-col gap-3 mt-3 border-t pt-3">
-            {user && (
-              <>
-                <a href="/" className="text-gray-600 hover:text-blue-500 transition duration-200">Home</a>
-                <a href="/myActivity" className="text-gray-600 hover:text-blue-500 transition duration-200">Activity</a>
-              </>
-            )}
-
-            <div className="flex items-center gap-2">
-              <Icon icon="mdi:account" className="text-gray-500 text-2xl" />
+            <div className="hidden md:flex items-center gap-4">
               {user ? (
                 <>
-                  <p className="text-sm">{user.first_name} {user.last_name}</p>
-                  <button onClick={handleLogout}
-                    className="flex items-center gap-1 text-sm text-red-500 hover:text-red-600 transition font-medium ml-auto cursor-pointer"
+                  <button onClick={() => navigate('/myProfile')} className="cursor-pointer">
+                    <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full hover:bg-gray-200 cursor-pointer">
+                      <Icon icon="mdi:account-circle" className="text-gray-500 text-lg" />
+                      <span className="text-sm font-medium text-gray-700">
+                        {user.first_name} {user.last_name}
+                      </span>
+                    </div>
+                  </button>
+                  <div className="h-5 w-px bg-gray-200" />
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-500 transition font-medium cursor-pointer"
                   >
-                    <Icon icon="mdi:logout" className="text-base" />
+                    <Icon icon="mdi:logout-variant" className="text-base" />
                     Logout
                   </button>
                 </>
@@ -105,8 +62,45 @@ function Navbar() {
                 <a href="/login" className="text-gray-600 hover:text-blue-500 transition duration-200">Login</a>
               )}
             </div>
+
+            {/* Hamburger (mobile) */}
+            <button
+              className="md:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 transition cursor-pointer"
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label="Toggle menu"
+            >
+              <Icon icon={menuOpen ? "mdi:close" : "mdi:menu"} className="text-2xl" />
+            </button>
           </div>
-        )}
+
+          {/* Mobile */}
+          {menuOpen && (
+            <div className="md:hidden flex flex-col gap-3 mt-3 border-t pt-3">
+              {user && (
+                <>
+                  <a href="/" className="text-gray-600 hover:text-blue-500 transition duration-200">Home</a>
+                  <a href="/myActivity" className="text-gray-600 hover:text-blue-500 transition duration-200">Activity</a>
+                </>
+              )}
+              <div className="flex items-center gap-2">
+                <Icon icon="mdi:account" className="text-gray-500 text-2xl" />
+                {user ? (
+                  <>
+                    <p className="text-sm">{user.first_name} {user.last_name}</p>
+                    <button onClick={handleLogout}
+                      className="flex items-center gap-1 text-sm text-red-500 hover:text-red-600 transition font-medium ml-auto cursor-pointer"
+                    >
+                      <Icon icon="mdi:logout" className="text-base" />
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <a href="/login" className="text-gray-600 hover:text-blue-500 transition duration-200">Login</a>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </>
   )

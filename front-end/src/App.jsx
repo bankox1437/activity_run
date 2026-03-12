@@ -12,6 +12,7 @@ import ReviewActivity from './pages/ReviewActivity';
 import ProtectedRoute from './components/ProtectedRoute'
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
+import Footer from './components/Footer';
 import { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { checkAuth } from './store/slices/authSlice'
@@ -27,7 +28,7 @@ function App() {
     <BrowserRouter>
       <div className="flex flex-col min-h-screen">
         <Navbar />
-        <div className="px-3 sm:px-6 lg:px-10 pt-16 max-w-screen-2xl mx-auto w-full flex-1">
+        <div className="px-4 sm:px-6 lg:px-10 pt-16 pb-16 max-w-screen-2xl mx-auto w-full flex-1 bg-white">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -41,6 +42,7 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
+        <Footer />
       </div>
     </BrowserRouter>
   )

@@ -51,8 +51,8 @@ function Pagination({ page, totalPages, onChange }) {
           key={p}
           onClick={() => onChange(p)}
           className={`w-9 h-9 rounded-full text-sm font-semibold transition cursor-pointer ${p === page
-              ? 'bg-blue-500 text-white shadow-sm'
-              : 'bg-white border border-gray-200 text-gray-600 hover:border-blue-400 hover:text-blue-500'
+            ? 'bg-blue-500 text-white shadow-sm'
+            : 'bg-white border border-gray-200 text-gray-600 hover:border-blue-400 hover:text-blue-500'
             }`}
         >
           {p}
@@ -313,7 +313,7 @@ function MyActivity() {
   const pagedJoined = myJoined.slice((joinedPage - 1) * PAGE_SIZE, joinedPage * PAGE_SIZE)
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 max-w-6xl mx-auto">
+    <div className="min-h-screen bg-white p-4 w-full">
 
       <div className="flex items-center justify-between mb-6 pt-2">
         <h1 className="text-2xl font-extrabold text-gray-900">My Activity</h1>
