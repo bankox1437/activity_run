@@ -14,7 +14,7 @@ function Home() {
   const { user } = useSelector((state) => state.auth)
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 max-w-6xl mx-auto">
+    <div className="min-h-screen bg-white p-4 w-full">
 
       <div className="w-full relative rounded-2xl overflow-hidden shadow-md">
         <img

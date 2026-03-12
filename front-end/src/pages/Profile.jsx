@@ -90,8 +90,8 @@ function Profile() {
 
     }
     return (
-        <div className="min-h-screen bg-white flex items-start justify-center p-4">
-            <div className=" w-full max-w-2xl p-8">
+        <div className="min-h-screen bg-white flex items-start justify-center p-4 w-full">
+            <div className="w-full p-8 pt-2">
 
                 <h1 className="text-3xl font-extrabold text-gray-900 mb-6">
                     My Profile
