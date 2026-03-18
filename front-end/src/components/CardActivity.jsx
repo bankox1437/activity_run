@@ -7,6 +7,8 @@ import Swal from 'sweetalert2'
 import { Icon } from '@iconify/react'
 import JoinModal from './JoinModal'
 import defaultCardImg from '../assets/cards_img/card_run.jpg'
+import MapModal from './MapModal'
+import CountdownTimer from './CountdownTimer'
 
 const apiURL = import.meta.env.VITE_API_URL
 const PAGE_SIZE = 8
@@ -35,6 +37,7 @@ function CardActivity({ raceType, selectedDate }) {
 
     const [joinTarget, setJoinTarget] = useState(null)
     const [descriptionTarget, setDescriptionTarget] = useState(null)
+    const [mapTarget, setMapTarget] = useState(null)
     const [page, setPage] = useState(1)
 
     useEffect(() => {
@@ -103,6 +106,14 @@ function CardActivity({ raceType, selectedDate }) {
                 />
             )}
 
+            {mapTarget && (
+                <MapModal
+                    isOpen={!!mapTarget}
+                    activity={mapTarget}
+                    onClose={() => setMapTarget(null)}
+                />
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {paged.map((activity) => {
                     return (
@@ -116,9 +127,12 @@ function CardActivity({ raceType, selectedDate }) {
                                     alt={activity.title}
                                     className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                                 />
-                                <span className="absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full bg-black/40 text-white">
+                                <span className="absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full bg-black/40 text-white shadow-sm">
                                     {activity.type_race_name || '-'}
                                 </span>
+                                <div className="absolute top-3 right-3">
+                                    <CountdownTimer targetDate={activity.datetime} />
+                                </div>
                             </div>
 
                             <div className="p-4 flex flex-col gap-2 flex-1">
@@ -126,11 +140,18 @@ function CardActivity({ raceType, selectedDate }) {
                                     <h2 className="font-bold text-gray-900 text-sm leading-snug line-clamp-1">
                                         {activity.title}
                                     </h2>
-                                    <button onClick={() => setDescriptionTarget(activity)}
-                                        title="View description"
-                                        className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 hover:bg-blue-100 text-gray-400 hover:text-blue-500 transition cursor-pointer">
-                                        <Icon icon="mdi:text-box-outline" className="text-sm" />
-                                    </button>
+                                    <div className="flex gap-1.5 shrink-0">
+                                        <button onClick={() => setMapTarget(activity)}
+                                            title="View map"
+                                            className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 hover:bg-blue-100 text-gray-400 hover:text-blue-500 transition cursor-pointer">
+                                            <Icon icon="mdi:map-marker-radius-outline" className="text-sm" />
+                                        </button>
+                                        <button onClick={() => setDescriptionTarget(activity)}
+                                            title="View description"
+                                            className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 hover:bg-blue-100 text-gray-400 hover:text-blue-500 transition cursor-pointer">
+                                            <Icon icon="mdi:text-box-outline" className="text-sm" />
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className="flex flex-col gap-1 text-xs text-gray-500">
