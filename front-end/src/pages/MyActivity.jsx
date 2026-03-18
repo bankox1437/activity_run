@@ -8,6 +8,7 @@ import Swal from 'sweetalert2'
 import defaultCardImg from '../assets/cards_img/card_run.jpg'
 import MapModal from '../components/MapModal'
 import CountdownTimer from '../components/CountdownTimer'
+import ChatModal from '../components/ChatModal'
 
 const apiURL = import.meta.env.VITE_API_URL
 const PAGE_SIZE = 6
@@ -74,7 +75,7 @@ function Pagination({ page, totalPages, onChange }) {
 }
 
 // CreatedCard 
-function CreatedCard({ activity, onRemove, onShowMap }) {
+function CreatedCard({ activity, onRemove, onShowMap, onOpenChat }) {
   const navigate = useNavigate()
 
   return (
@@ -93,9 +94,27 @@ function CreatedCard({ activity, onRemove, onShowMap }) {
         </div>
       </div>
       <div className="p-4 flex flex-col gap-3 flex-1">
-        <h3 className="font-bold text-gray-900 text-sm leading-snug line-clamp-1 border-b border-gray-100 pb-2">
-          {activity.title}
-        </h3>
+        <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+          <h3 className="font-bold text-gray-900 text-sm leading-snug line-clamp-1">
+            {activity.title}
+          </h3>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => onShowMap(activity)}
+              className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 hover:bg-blue-100 text-gray-400 hover:text-blue-500 transition cursor-pointer"
+              title="View on Map"
+            >
+              <Icon icon="mdi:map-marker-radius-outline" className="text-sm" />
+            </button>
+            <button
+              onClick={() => onOpenChat(activity)}
+              className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition cursor-pointer"
+              title="Activity Chat"
+            >
+              <Icon icon="mdi:chat-outline" className="text-sm" />
+            </button>
+          </div>
+        </div>
 
         <div className="flex flex-col gap-2 text-xs text-gray-500">
           <span className="flex items-center gap-2">
@@ -130,7 +149,7 @@ function CreatedCard({ activity, onRemove, onShowMap }) {
             <Icon icon="mdi:account-check-outline" className="text-base" />
             Manage
           </button>
-          <div className="flex">
+          <div className="flex gap-2">
             <button
               onClick={() => {
                 if (Number(activity.participant_count) > 0) {
@@ -144,16 +163,9 @@ function CreatedCard({ activity, onRemove, onShowMap }) {
                 }
                 navigate(`/activity/${activity.id}/update`)
               }}
-              className="flex-1 py-2 mx-2 rounded-xl border border-yellow-200 text-yellow-500 text-xs font-semibold hover:bg-yellow-50 transition flex items-center justify-center gap-1.5 cursor-pointer"
+              className="flex-1 py-2 rounded-xl border border-yellow-200 text-yellow-500 text-xs font-semibold hover:bg-yellow-50 transition flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Icon icon="mdi:edit-outline" className="text-base" />
-            </button>
-            <button
-              onClick={() => onShowMap(activity)}
-              className="px-2.5 py-2 rounded-xl border border-blue-100 text-blue-500 text-xs font-semibold hover:bg-blue-50 transition flex items-center justify-center cursor-pointer mr-1"
-              title="View on Map"
-            >
-              <Icon icon="mdi:map-marker-radius-outline" className="text-base" />
             </button>
             <button
               onClick={() => onRemove(activity)}
@@ -169,7 +181,7 @@ function CreatedCard({ activity, onRemove, onShowMap }) {
 }
 
 // JoinedCard
-function JoinedCard({ activity, onCancel, onShowMap }) {
+function JoinedCard({ activity, onCancel, onShowMap, onOpenChat }) {
   const navigate = useNavigate()
   const statusKey = Number(activity.status)
   const cfg = statusConfig[statusKey] ?? statusConfig[0]
@@ -200,13 +212,24 @@ function JoinedCard({ activity, onCancel, onShowMap }) {
           <h3 className="font-bold text-gray-900 text-sm leading-snug line-clamp-1">
             {activity.title}
           </h3>
-          <button
-            onClick={() => onShowMap(activity)}
-            className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 hover:bg-blue-100 text-gray-400 hover:text-blue-500 transition cursor-pointer"
-            title="View on Map"
-          >
-            <Icon icon="mdi:map-marker-radius-outline" className="text-sm" />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => onShowMap(activity)}
+              className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 hover:bg-blue-100 text-gray-400 hover:text-blue-500 transition cursor-pointer"
+              title="View on Map"
+            >
+              <Icon icon="mdi:map-marker-radius-outline" className="text-sm" />
+            </button>
+            {statusKey === 1 && (
+              <button
+                onClick={() => onOpenChat(activity)}
+                className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition cursor-pointer"
+                title="Chat with Owner"
+              >
+                <Icon icon="mdi:chat-outline" className="text-sm" />
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-col gap-2 text-xs text-gray-500">
@@ -271,6 +294,7 @@ function MyActivity() {
   const [createdPage, setCreatedPage] = useState(1)
   const [joinedPage, setJoinedPage] = useState(1)
   const [mapTarget, setMapTarget] = useState(null)
+  const [chatTarget, setChatTarget] = useState(null)
 
   useEffect(() => { dispatch(fetchMyActivities()) }, [dispatch])
 
@@ -381,6 +405,14 @@ function MyActivity() {
         />
       )}
 
+      {chatTarget && (
+        <ChatModal
+          isOpen={!!chatTarget}
+          activity={chatTarget}
+          onClose={() => setChatTarget(null)}
+        />
+      )}
+
       {myLoading ? (
         <div className="flex justify-center py-20">
           <Icon icon="mdi:loading" className="text-4xl text-gray-300 animate-spin" />
@@ -398,6 +430,7 @@ function MyActivity() {
                       activity={a}
                       onRemove={handleDeleteActivity}
                       onShowMap={setMapTarget}
+                      onOpenChat={setChatTarget}
                     />
                   ))}
                 </div>
@@ -416,6 +449,7 @@ function MyActivity() {
                       activity={a}
                       onCancel={() => handleCancelJoin(a)}
                       onShowMap={setMapTarget}
+                      onOpenChat={setChatTarget}
                     />
                   ))}
                 </div>
