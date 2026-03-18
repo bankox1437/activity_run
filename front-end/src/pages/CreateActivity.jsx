@@ -165,13 +165,13 @@ function CreateActivity() {
                             className="w-full px-4 py-3 rounded-full border border-gray-200 bg-gray-50 text-gray-800 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition" />
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-3 items-start">
-                        <div className="flex-1 min-w-0">
-                            <label className="block text-sm font-bold text-gray-800 mb-1.5">Location <span className="text-red-500">*</span></label>
-                            <LocationSearch onLocationSelect={handleLocationSelect} initialValue={form.location} />
-                        </div>
+                    <div>
+                        <label className="block text-sm font-bold text-gray-800 mb-1.5">Location <span className="text-red-500">*</span></label>
+                        <LocationSearch onLocationSelect={handleLocationSelect} initialValue={form.location} initialLat={form.latitude} initialLng={form.longitude} />
+                    </div>
 
-                        <div className="sm:w-40 w-full">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="flex-1">
                             <label className="block text-sm font-bold text-gray-800 mb-1.5">Date <span className="text-red-500">*</span></label>
                             <div className="relative">
                                 <Icon icon="mdi:calendar-outline" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none" />
@@ -180,7 +180,7 @@ function CreateActivity() {
                             </div>
                         </div>
 
-                        <div className="sm:w-36 w-full">
+                        <div className="flex-1">
                             <label className={`block text-sm font-bold mb-1.5 ${!form.date ? 'text-gray-400' : 'text-gray-800'}`}>Time <span className="text-red-500">*</span></label>
                             <div className="relative">
                                 <Icon icon="mdi:clock-outline" className={`absolute left-3 top-1/2 -translate-y-1/2 text-lg pointer-events-none ${!form.date ? 'text-gray-300' : 'text-gray-400'}`} />

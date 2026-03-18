@@ -171,7 +171,7 @@ router.get('/my-joined', auth, async (req, res) => {
     try {
         const result = await pool.query(
             `SELECT j.id AS join_id, j.comment, j.status,
-            a.id AS activity_id, a.title, a.location, a.datetime, a.image,
+            a.id AS activity_id, a.title, a.location, a.latitude, a.longitude, a.datetime, a.image,
                 rt.race_type_name AS type_race_name,
                     u.first_name AS organizer_first, u.last_name AS organizer_last
              FROM tb_activity_join j
