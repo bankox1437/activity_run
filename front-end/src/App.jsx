@@ -14,15 +14,54 @@ import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import Footer from './components/Footer';
 import { useEffect } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { checkAuth } from './store/slices/authSlice'
-
+import { connectSocket, disconnectSocket, socket } from './socket'
+import Swal from 'sweetalert2'
 function App() {
   const dispatch = useDispatch()
+  const { user, isAuthenticated } = useSelector((state) => state.auth)
 
   useEffect(() => {
     dispatch(checkAuth())
   }, [dispatch])
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+        connectSocket(user.id);
+
+        socket.on('new_join_request', (data) => {
+            Swal.fire({
+                title: 'New Join Request!',
+                text: 'Someone wants to join your activity.',
+                icon: 'info',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        });
+
+        socket.on('request_status_updated', (data) => {
+            const statusText = data.status === 1 ? 'Accepted' : 'Rejected';
+            Swal.fire({
+                title: 'Request Updated',
+                text: `Your join request has been ${statusText}.`,
+                icon: data.status === 1 ? 'success' : 'error',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        });
+
+        return () => {
+            socket.off('new_join_request');
+            socket.off('request_status_updated');
+            disconnectSocket();
+        };
+    }
+  }, [isAuthenticated, user]);
 
   return (
     <BrowserRouter>

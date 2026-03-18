@@ -123,6 +123,16 @@ router.post('/join/:activity_id', auth, async (req, res) => {
              VALUES ($1, $2, $3, 0) RETURNING *`,
             [activity_id, user_id, comment || '']
         );
+        // Emit notification to owner
+        const io = req.app.get('io')
+        const ownerRes = await pool.query('SELECT user_id FROM tb_activity WHERE id = $1', [activity_id])
+        if (ownerRes.rows.length > 0) {
+            io.to(`user_${ownerRes.rows[0].user_id}`).emit('new_join_request', {
+                activity_id,
+                user_id
+            })
+        }
+
         res.status(201).json({ join: result.rows[0] });
     } catch (err) {
         console.error('Join error:', err.message);
@@ -282,6 +292,14 @@ router.patch('/request/:join_id', auth, async (req, res) => {
             'UPDATE tb_activity_join SET status = $1 WHERE id = $2 RETURNING *',
             [statusMap[status], join_id]
         );
+
+        // Emit status update to participant
+        const io = req.app.get('io')
+        io.to(`user_${result.rows[0].user_id}`).emit('request_status_updated', {
+            join_id,
+            status: statusMap[status]
+        })
+
         res.status(200).json({ join: result.rows[0] });
     } catch (err) {
         console.error('patch request error:', err.message);
@@ -501,6 +519,54 @@ router.get('/:activity_id/my-review', auth, async (req, res) => {
     } catch (err) {
         console.error('my-review error:', err.message);
         res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// ดึงประวัติแชท
+router.get('/:activity_id/messages', auth, async (req, res) => {
+    const { activity_id } = req.params;
+    try {
+        const result = await pool.query(
+            `SELECT c.*, u.first_name, u.last_name
+             FROM tb_activity_chat c
+             JOIN tb_users u ON u.user_id = c.sender_id
+             WHERE c.activity_id = $1
+             ORDER BY c.created_at ASC`,
+            [activity_id]
+        );
+        res.status(200).json({ data: result.rows });
+    } catch (err) {
+        console.error('get messages error:', err.message);
+        res.status(500).json({ message: 'Failed to fetch messages' });
+    }
+});
+
+// ส่งข้อความแชท (ผ่าน REST - reliable)
+router.post('/:activity_id/messages', auth, async (req, res) => {
+    const { activity_id } = req.params;
+    const sender_id = req.user.id;
+    const { message } = req.body;
+    if (!message?.trim()) return res.status(400).json({ message: 'Message is required' });
+    try {
+        const result = await pool.query(
+            'INSERT INTO tb_activity_chat (activity_id, sender_id, message) VALUES ($1, $2, $3) RETURNING *',
+            [activity_id, sender_id, message.trim()]
+        );
+        const chatMsg = result.rows[0];
+        const userRes = await pool.query('SELECT first_name, last_name FROM tb_users WHERE user_id = $1', [sender_id]);
+        const fullMsg = {
+            ...chatMsg,
+            first_name: userRes.rows[0].first_name,
+            last_name: userRes.rows[0].last_name
+        };
+        // Broadcast via socket
+        const io = req.app.get('io');
+        if (io) io.to(`activity_${activity_id}`).emit('receive_message', fullMsg);
+
+        res.status(201).json({ data: fullMsg });
+    } catch (err) {
+        console.error('send message error:', err.message);
+        res.status(500).json({ message: 'Failed to send message' });
     }
 });
 
